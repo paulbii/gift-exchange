@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="text-center my-5">
+                <h1 class="display-4 mb-4">
+                    <i class="bi bi-gift-fill text-primary"></i>
+                    Family Gift Exchange
+                </h1>
+                <p class="lead">Coordinate gifts with your family while keeping the surprise!</p>
+                
+                <div class="d-grid gap-2 col-md-6 mx-auto mt-4">
+                    <a href="{{ url_for('main.login') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-box-arrow-in-right"></i> Log In
+                    </a>
+                </div>
+                
+                <div class="mt-5">
+                    <h4>How it works:</h4>
+                    <div class="row mt-4">
+                        <div class="col-md-4 mb-3">
+                            <i class="bi bi-list-ul fs-1 text-primary"></i>
+                            <h5 class="mt-2">Create Your List</h5>
+                            <p>Add items you want with links, prices, and notes</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <i class="bi bi-eye-slash fs-1 text-primary"></i>
+                            <h5 class="mt-2">Stay Surprised</h5>
+                            <p>You never see what's been claimed from your list</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <i class="bi bi-check-circle fs-1 text-primary"></i>
+                            <h5 class="mt-2">No Duplicates</h5>
+                            <p>Claim items to let others know you've got it</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

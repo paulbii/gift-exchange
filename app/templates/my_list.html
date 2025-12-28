@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}My List{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    <i class="bi bi-list-ul"></i> {{ list.name }}
+                </h1>
+                <a href="{{ url_for('main.add_item', list_id=list.id) }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Add Item
+                </a>
+            </div>
+            
+            {% if list.items %}
+            <p class="text-muted">
+                <i class="bi bi-info-circle"></i> Items are shown in priority order (top = most wanted)
+            </p>
+            
+            <div class="list-group">
+                {% for item in list.items %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h5 class="mb-2">
+                                <span class="badge bg-secondary me-2">#{{ loop.index }}</span>
+                                {{ item.title }}
+                            </h5>
+                            
+                            {% if item.description %}
+                            <p class="mb-2">{{ item.description }}</p>
+                            {% endif %}
+                            
+                            <div class="small text-muted">
+                                {% if item.price %}
+                                <span class="me-3">
+                                    <i class="bi bi-currency-dollar"></i> ${{ "%.2f"|format(item.price) }}
+                                </span>
+                                {% endif %}
+                                
+                                {% if item.url %}
+                                <span class="me-3">
+                                    <i class="bi bi-link-45deg"></i>
+                                    <a href="{{ item.url }}" target="_blank">Link</a>
+                                </span>
+                                {% endif %}
+                                
+                                {% if item.max_claims > 1 %}
+                                <span class="me-3">
+                                    <i class="bi bi-people"></i>
+                                    {% if item.max_claims >= 999 %}
+                                    Multiple allowed
+                                    {% else %}
+                                    Up to {{ item.max_claims }} people
+                                    {% endif %}
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if item.notes %}
+                            <div class="mt-2 small">
+                                <strong>Notes:</strong> {{ item.notes }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="btn-group-vertical ms-3" role="group">
+                            {% if loop.index > 1 %}
+                            <a href="{{ url_for('main.move_item', item_id=item.id, direction='up') }}" 
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-arrow-up"></i>
+                            </a>
+                            {% endif %}
+                            
+                            {% if loop.index < list.items|length %}
+                            <a href="{{ url_for('main.move_item', item_id=item.id, direction='down') }}" 
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-arrow-down"></i>
+                            </a>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('main.edit_item', item_id=item.id) }}" 
+                               class="btn btn-sm btn-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            
+                            <button type="button" class="btn btn-sm btn-danger" 
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal{{ item.id }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Delete Confirmation Modal -->
+                    <div class="modal fade" id="deleteModal{{ item.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Delete Item?</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to delete "{{ item.title }}"?
+                                    {% if item.claim_count() > 0 %}
+                                    <div class="alert alert-warning mt-2">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        Someone has claimed this item. They will be notified.
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form method="POST" action="{{ url_for('main.delete_item', item_id=item.id) }}" style="display: inline;">
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Your list is empty. Click "Add Item" to get started!
+            </div>
+            {% endif %}
+            
+            <!-- Managed Children's Lists -->
+            {% if managed_lists %}
+            <div class="mt-5">
+                <h3>Children's Lists You Manage</h3>
+                <div class="list-group mt-3">
+                    {% for child_list in managed_lists %}
+                    <a href="{{ url_for('main.my_list') }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ child_list.name }}</h5>
+                            <small>{{ child_list.items|length }} items</small>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="mt-4">
+                <a href="{{ url_for('main.add_child') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-person-plus"></i> Add Child Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

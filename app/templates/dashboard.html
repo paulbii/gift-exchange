@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-house-door"></i> Dashboard
+            </h1>
+            
+            {% if current_user.is_admin %}
+            <div class="mb-4">
+                <a href="{{ url_for('main.invite_user') }}" class="btn btn-success">
+                    <i class="bi bi-person-plus"></i> Invite Family Member
+                </a>
+            </div>
+            {% endif %}
+            
+            <h3 class="mb-3">Family Members</h3>
+            
+            {% if not lists %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No family members yet. 
+                {% if current_user.is_admin %}
+                Start by inviting your family!
+                {% else %}
+                Ask the administrator to invite more people.
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="row">
+                {% for list in lists %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-person"></i> {{ list.owner.name }}
+                            </h5>
+                            
+                            {% if list.items %}
+                            <p class="card-text text-muted">
+                                {{ list.items|length }} item{{ 's' if list.items|length != 1 else '' }}
+                            </p>
+                            {% else %}
+                            <p class="card-text text-muted">
+                                <em>No items yet</em>
+                            </p>
+                            {% endif %}
+                            
+                            {% if current_user.can_manage_list(list) %}
+                            <a href="{{ url_for('main.my_list') }}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-pencil"></i> Manage List
+                            </a>
+                            {% else %}
+                            <a href="{{ url_for('main.view_list', list_id=list.id) }}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-eye"></i> View List
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

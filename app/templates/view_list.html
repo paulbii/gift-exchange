@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}{{ list.owner.name }}'s List{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-2">
+                <i class="bi bi-person"></i> {{ list.name }}
+            </h1>
+            
+            <div class="alert alert-info mb-4">
+                <i class="bi bi-envelope"></i>
+                <strong>Send electronic gifts to:</strong> {{ list.owner.get_delivery_email() }}
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="filterSwitch" 
+                           {% if show_available_only %}checked{% endif %}
+                           onchange="toggleFilter(this)">
+                    <label class="form-check-label" for="filterSwitch">
+                        Show only available items
+                    </label>
+                </div>
+                
+                {% if show_available_only and shown_items < total_items %}
+                <small class="text-muted">
+                    Showing {{ shown_items }} of {{ total_items }} items
+                </small>
+                {% endif %}
+            </div>
+            
+            {% if items %}
+            <div class="list-group">
+                {% for item in items %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="mb-0">
+                                    <span class="badge bg-secondary me-2">#{{ loop.index }}</span>
+                                    {{ item.title }}
+                                </h5>
+                                
+                                <!-- Claim Status Badge -->
+                                {% if item.max_claims == 1 %}
+                                    {% if item.claim_count() > 0 %}
+                                    <span class="badge bg-warning">Claimed</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Available</span>
+                                    {% endif %}
+                                {% else %}
+                                    {% if item.is_available() %}
+                                    <span class="badge bg-success">
+                                        {{ item.claim_count() }} of 
+                                        {% if item.max_claims >= 999 %}∞{% else %}{{ item.max_claims }}{% endif %}
+                                        claimed
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Fully Claimed</span>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            
+                            {% if item.description %}
+                            <p class="mb-2">{{ item.description }}</p>
+                            {% endif %}
+                            
+                            <div class="small text-muted mb-2">
+                                {% if item.price %}
+                                <span class="me-3">
+                                    <i class="bi bi-currency-dollar"></i> ${{ "%.2f"|format(item.price) }}
+                                </span>
+                                {% endif %}
+                                
+                                {% if item.url %}
+                                <span class="me-3">
+                                    <i class="bi bi-link-45deg"></i>
+                                    <a href="{{ item.url }}" target="_blank" rel="noopener">View Link</a>
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if item.notes %}
+                            <div class="alert alert-light small mb-2">
+                                <strong><i class="bi bi-sticky"></i> Notes:</strong> {{ item.notes }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Claim Button -->
+                        <div class="ms-3">
+                            {% if item.is_claimed_by(current_user) %}
+                            <form method="POST" action="{{ url_for('main.unclaim_item', item_id=item.id) }}">
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="bi bi-x-circle"></i> Unclaim
+                                </button>
+                            </form>
+                            {% elif item.is_available() %}
+                            <form method="POST" action="{{ url_for('main.claim_item', item_id=item.id) }}">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-circle"></i> Claim
+                                </button>
+                            </form>
+                            {% else %}
+                            <button class="btn btn-secondary" disabled>
+                                <i class="bi bi-dash-circle"></i> Unavailable
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                {% if show_available_only %}
+                <i class="bi bi-info-circle"></i> No available items. All items have been claimed!
+                {% else %}
+                <i class="bi bi-info-circle"></i> This list is empty.
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <div class="mt-4">
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleFilter(checkbox) {
+    const url = new URL(window.location);
+    if (checkbox.checked) {
+        url.searchParams.set('available', 'true');
+    } else {
+        url.searchParams.delete('available');
+    }
+    window.location = url;
+}
+</script>
+{% endblock %}
