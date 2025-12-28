@@ -19,7 +19,7 @@ class Config:
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@giftexchange.com')
     
     # App configuration
-    APP_NAME = os.environ.get('APP_NAME', 'Family Gift Exchange')
+    APP_NAME = os.environ.get('APP_NAME', 'Power Family Wishlist')
 
 
 class DevelopmentConfig(Config):
