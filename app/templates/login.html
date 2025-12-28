@@ -25,9 +25,14 @@
                         
                         <div class="mb-3">
                             {{ form.password.label(class="form-label") }}
-                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
+                            <div class="input-group">
+                                {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), id="passwordField") }}
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="bi bi-eye" id="toggleIcon"></i>
+                                </button>
+                            </div>
                             {% if form.password.errors %}
-                                <div class="invalid-feedback">
+                                <div class="invalid-feedback d-block">
                                     {{ form.password.errors[0] }}
                                 </div>
                             {% endif %}
@@ -51,4 +56,20 @@
         </div>
     </div>
 </div>
+
+<script>
+const togglePassword = document.getElementById('togglePassword');
+const passwordField = document.getElementById('passwordField');
+const toggleIcon = document.getElementById('toggleIcon');
+
+togglePassword.addEventListener('click', function() {
+    // Toggle password visibility
+    const type = passwordField.type === 'password' ? 'text' : 'password';
+    passwordField.type = type;
+    
+    // Toggle icon
+    toggleIcon.classList.toggle('bi-eye');
+    toggleIcon.classList.toggle('bi-eye-slash');
+});
+</script>
 {% endblock %}
