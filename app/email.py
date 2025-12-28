@@ -1,20 +1,62 @@
 from flask import url_for, current_app
-from flask_mail import Message
-from app import mail
+import os
+import requests
 
 
 def send_email(subject, recipients, text_body, html_body=None):
-    """Send an email"""
-    msg = Message(
-        subject=subject,
-        recipients=recipients if isinstance(recipients, list) else [recipients],
-        body=text_body,
-        html=html_body
-    )
+    """Send an email using SendGrid HTTP API"""
+    # Get SendGrid API key from environment
+    api_key = os.environ.get('SENDGRID_API_KEY') or os.environ.get('MAIL_PASSWORD')
+    sender = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@giftexchange.com')
+    
+    if not api_key:
+        current_app.logger.error('No SendGrid API key configured')
+        return False
+    
+    # Ensure recipients is a list
+    if not isinstance(recipients, list):
+        recipients = [recipients]
+    
+    # Build SendGrid API request
+    data = {
+        "personalizations": [
+            {
+                "to": [{"email": email} for email in recipients]
+            }
+        ],
+        "from": {"email": sender},
+        "subject": subject,
+        "content": [
+            {"type": "text/plain", "value": text_body}
+        ]
+    }
+    
+    # Add HTML content if provided
+    if html_body:
+        data["content"].append({"type": "text/html", "value": html_body})
+    
+    # Send via SendGrid HTTP API
     try:
-        mail.send(msg)
+        response = requests.post(
+            "https://api.sendgrid.com/v3/mail/send",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json=data,
+            timeout=10
+        )
+        
+        if response.status_code == 202:
+            current_app.logger.info(f'Email sent successfully to {recipients}')
+            return True
+        else:
+            current_app.logger.error(f'SendGrid error {response.status_code}: {response.text}')
+            return False
+            
     except Exception as e:
         current_app.logger.error(f'Failed to send email: {str(e)}')
+        return False
 
 
 def send_invite_email(user, token, name):
