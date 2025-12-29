@@ -401,6 +401,8 @@ def invite_user():
         return redirect(url_for('main.dashboard'))
     
     form = InviteUserForm()
+    invite_url = None  # Will be set after successful invite
+    
     if form.validate_on_submit():
         # Create user with invite token
         user = User(
@@ -414,13 +416,16 @@ def invite_user():
         db.session.add(user)
         db.session.commit()
         
+        # Generate invite URL
+        invite_url = url_for('main.register', token=token, _external=True)
+        
         # Send invitation email
         send_invite_email(user, token, form.name.data)
         
-        flash(f'Invitation sent to {form.email.data}!', 'success')
-        return redirect(url_for('main.dashboard'))
+        flash(f'Invitation sent to {form.email.data}! You can also share the link below.', 'success')
+        # Don't redirect - stay on page to show the invite link
     
-    return render_template('invite_user.html', form=form)
+    return render_template('invite_user.html', form=form, invite_url=invite_url)
 
 
 # ==================== PROFILE & SETTINGS ====================

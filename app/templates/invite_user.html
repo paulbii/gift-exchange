@@ -33,9 +33,53 @@
                             <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Cancel</a>
                         </div>
                     </form>
+                    
+                    {% if invite_url %}
+                    <div class="alert alert-info mt-4">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-link-45deg"></i> Invite Link
+                        </h5>
+                        <p class="mb-2">You can also text or share this link:</p>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="{{ invite_url }}" id="inviteLink" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyInviteLink()">
+                                <i class="bi bi-clipboard"></i> Copy
+                            </button>
+                        </div>
+                        <small class="text-muted d-block mt-2">Link expires in 48 hours</small>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+{% if invite_url %}
+<script>
+function copyInviteLink() {
+    const linkInput = document.getElementById('inviteLink');
+    linkInput.select();
+    linkInput.setSelectionRange(0, 99999); // For mobile devices
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(linkInput.value).then(function() {
+        // Change button text temporarily
+        const button = event.target.closest('button');
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="bi bi-check"></i> Copied!';
+        button.classList.remove('btn-outline-secondary');
+        button.classList.add('btn-success');
+        
+        setTimeout(function() {
+            button.innerHTML = originalHTML;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-secondary');
+        }, 2000);
+    }).catch(function(err) {
+        alert('Failed to copy link. Please copy manually.');
+    });
+}
+</script>
+{% endif %}
 {% endblock %}
