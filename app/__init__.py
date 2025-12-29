@@ -32,6 +32,12 @@ def create_app(config_name='default'):
     def load_user(user_id):
         return User.query.get(int(user_id))
     
+    # Context processor to inject current year into all templates
+    @app.context_processor
+    def inject_current_year():
+        from datetime import datetime
+        return {'current_year': datetime.now().year}
+    
     # Register blueprints
     from app.routes import main
     app.register_blueprint(main)

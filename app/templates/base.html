@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock %} - Family Gift Exchange</title>
+    <title>{% block title %}{% endblock %} - Power Family Wishlist</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -46,7 +46,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('main.index') }}">
-                <i class="bi bi-gift"></i> Wishlist
+                <i class="bi bi-gift"></i> Power Family Wishlist
             </a>
             
             {% if current_user.is_authenticated %}
@@ -111,7 +111,7 @@
     <!-- Footer -->
     <footer class="bg-light py-3 mt-auto">
         <div class="container text-center text-muted">
-            <small>&copy; 2025 Family Gift Exchange</small>
+            <small>&copy; {{ current_year }} Power Family Wishlist</small>
         </div>
     </footer>
 
