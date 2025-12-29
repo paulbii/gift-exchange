@@ -510,6 +510,21 @@ def unclaim_item(item_id):
     return redirect(url_for('main.view_list', list_id=item.list_id))
 
 
+# ==================== HELP & DOCUMENTATION ====================
+
+@main.route('/help')
+def help():
+    """Public help page (pre-login)"""
+    return render_template('help.html')
+
+
+@main.route('/help-guide')
+@login_required
+def help_guide():
+    """In-app help guide (post-login)"""
+    return render_template('help_guide.html')
+
+
 # ==================== ADMIN FUNCTIONS ====================
 
 @main.route('/admin/invite', methods=['GET', 'POST'])

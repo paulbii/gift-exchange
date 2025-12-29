@@ -79,6 +79,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.help_guide') }}">
+                            <i class="bi bi-question-circle"></i> Help
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.logout') }}">
                             <i class="bi bi-box-arrow-right"></i> Logout
                         </a>
@@ -111,7 +116,14 @@
     <!-- Footer -->
     <footer class="bg-light py-3 mt-auto">
         <div class="container text-center text-muted">
-            <small>&copy; {{ current_year }} Power Family Wishlist</small>
+            <small>
+                &copy; {{ current_year }} Power Family Wishlist
+                {% if current_user.is_authenticated %}
+                • <a href="{{ url_for('main.help_guide') }}">Help</a>
+                {% else %}
+                • <a href="{{ url_for('main.help') }}">Help</a>
+                {% endif %}
+            </small>
         </div>
     </footer>
 

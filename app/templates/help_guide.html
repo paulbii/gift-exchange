@@ -1,0 +1,588 @@
+{% extends "base.html" %}
+
+{% block title %}Help Guide{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <h1 class="mb-4">📚 Power Family Wishlist Help Guide</h1>
+            
+            <p class="lead">Complete guide to using all features of Power Family Wishlist.</p>
+            
+            <!-- Table of Contents -->
+            <div class="card mb-5">
+                <div class="card-header">
+                    <h5 class="mb-0">Table of Contents</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul>
+                                <li><a href="#your-wishlist">Your Wishlist</a></li>
+                                <li><a href="#received-items">Received Items (Archive)</a></li>
+                                <li><a href="#children-lists">Managing Children's Lists</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul>
+                                <li><a href="#shopping">Shopping for Others</a></li>
+                                <li><a href="#account">Account Settings</a></li>
+                                <li><a href="#tips">Tips & Best Practices</a></li>
+                                <li><a href="#faq">FAQ</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 1: Your Wishlist -->
+            <section id="your-wishlist" class="mb-5">
+                <h2>Your Wishlist</h2>
+                
+                <h4 class="mt-4">Adding Items</h4>
+                <ol>
+                    <li>Click <strong>"My List"</strong> in the navigation bar</li>
+                    <li>Click the <strong>"Add Item"</strong> button</li>
+                    <li>Fill out the item information:
+                        <ul>
+                            <li><strong>Item Title</strong> (required) - Name of the item</li>
+                            <li><strong>Description</strong> - Be specific! Include size, color, model number, or any preferences
+                                <br><span class="text-muted"><em>Example: "Size Medium, Navy Blue, Model XR-500"</em></span>
+                            </li>
+                            <li><strong>Link/URL</strong> - Where to buy it (Amazon, store website, etc.)</li>
+                            <li><strong>Price</strong> - Helps gift-givers budget</li>
+                            <li><strong>Allow multiple people to buy this</strong> - Check this for items like gift cards where multiple gifts are okay</li>
+                        </ul>
+                    </li>
+                    <li>Click <strong>"Save Item"</strong></li>
+                </ol>
+                
+                <div class="alert alert-info">
+                    <strong>💡 Tip:</strong> Click the <strong>ℹ️ icons</strong> next to field labels for helpful tips!
+                </div>
+                
+                <h4 class="mt-4">Editing Items</h4>
+                <ol>
+                    <li>Go to <strong>"My List"</strong></li>
+                    <li>Find the item you want to edit</li>
+                    <li>Click the <strong>pencil icon (✏️)</strong></li>
+                    <li>Make your changes</li>
+                    <li>Click <strong>"Save Item"</strong></li>
+                </ol>
+                
+                <div class="card bg-light mt-3">
+                    <div class="card-body">
+                        <h5 class="card-title">What if someone already claimed my item?</h5>
+                        <p class="mb-0">You can still edit it! The person who claimed it won't be notified of the changes, so major changes (like completely different item) might confuse them. Small updates (like adding color preference) are fine.</p>
+                    </div>
+                </div>
+                
+                <h4 class="mt-4">Organizing Your List (Priority Order)</h4>
+                <p>Items at the <strong>top of your list are most wanted</strong>. Use the up/down arrows to reorder:</p>
+                <ol>
+                    <li>Go to <strong>"My List"</strong></li>
+                    <li>Click the <strong>up arrow (↑)</strong> to move an item higher in priority</li>
+                    <li>Click the <strong>down arrow (↓)</strong> to move an item lower in priority</li>
+                </ol>
+                
+                <div class="alert alert-success">
+                    <strong>Why this matters:</strong> Family members see your items in this order, so they know what you want most!
+                </div>
+                
+                <h4 class="mt-4">Deleting Items</h4>
+                <ol>
+                    <li>Go to <strong>"My List"</strong></li>
+                    <li>Find the item you want to delete</li>
+                    <li>Click the <strong>trash icon (🗑️)</strong></li>
+                    <li>Confirm deletion</li>
+                </ol>
+                
+                <div class="alert alert-warning">
+                    <strong>⚠️ Important:</strong> If someone claimed this item, they'll be notified that you deleted it. This can't be undone!
+                </div>
+                
+                <h4 class="mt-4">Viewing Your List</h4>
+                <p>Your "My List" page has <strong>two tabs</strong>:</p>
+                <ul>
+                    <li><strong>Active Items</strong> - Your current wishlist (what you want now)</li>
+                    <li><strong>Received Items</strong> - Archive of gifts you've received (see next section)</li>
+                </ul>
+                
+                <p><strong>What you can see:</strong></p>
+                <ul>
+                    <li>✅ All your items with descriptions, links, and prices</li>
+                    <li>✅ The order of your items (priority)</li>
+                    <li>❌ What's been claimed from your list (keeps the surprise!)</li>
+                    <li>❌ Who claimed anything (total privacy)</li>
+                </ul>
+            </section>
+            
+            <!-- Section 2: Received Items -->
+            <section id="received-items" class="mb-5">
+                <h2>Received Items (Archive)</h2>
+                
+                <h4 class="mt-4">Why Use the Archive?</h4>
+                <p>After birthdays and holidays, you'll receive gifts from your wishlist. Marking them as "received" keeps your active wishlist clean and current while maintaining a history of what you've gotten.</p>
+                
+                <h4 class="mt-4">Marking Items as Received</h4>
+                <ol>
+                    <li>Go to <strong>"My List"</strong></li>
+                    <li>Make sure you're on the <strong>"Active Items"</strong> tab</li>
+                    <li>Find the item you received</li>
+                    <li>Click the <strong>green checkmark button (✓)</strong></li>
+                    <li>The item moves to your <strong>"Received Items"</strong> tab</li>
+                </ol>
+                
+                <div class="alert alert-info">
+                    <strong>When to do this:</strong> After Christmas, birthdays, or any time you receive a gift from your list!
+                </div>
+                
+                <h4 class="mt-4">Viewing Received Items</h4>
+                <ol>
+                    <li>Go to <strong>"My List"</strong></li>
+                    <li>Click the <strong>"Received Items"</strong> tab</li>
+                    <li>You'll see all items you've marked as received with the date</li>
+                </ol>
+                
+                <p><strong>What you'll see:</strong></p>
+                <ul>
+                    <li>Item title and description</li>
+                    <li>When you received it (e.g., "Received: Dec 25, 2024")</li>
+                    <li>Price and link (if you added them)</li>
+                </ul>
+                
+                <h4 class="mt-4">Restoring Items to Active List</h4>
+                <p>Want the same item again (different size, color, or just want another)? You can restore it:</p>
+                <ol>
+                    <li>Go to <strong>"My List" → "Received Items"</strong> tab</li>
+                    <li>Find the item you want again</li>
+                    <li>Click <strong>"Restore"</strong></li>
+                    <li>You'll see the edit form with a <strong>yellow warning</strong>:
+                        <div class="alert alert-warning mt-2 mb-2">
+                            <strong>⚠️ Restoring Archived Item</strong><br>
+                            This item was marked as received on [date]. Please verify the URL and price are still current before saving.
+                        </div>
+                    </li>
+                    <li>Update any details (description, URL, price, etc.)</li>
+                    <li>Click <strong>"Save Item"</strong></li>
+                    <li>A <strong>NEW COPY</strong> appears on your Active Items list</li>
+                    <li>The original stays in Received Items (history preserved!)</li>
+                </ol>
+                
+                <div class="alert alert-success">
+                    <strong>Example:</strong> You got a blue sweater (size M) for Christmas. Mark it received. Next year you want another in size L. Restore the item, change the description to "size L, navy color," save. Now you have a new active item and the history of what you got last year!
+                </div>
+                
+                <h4 class="mt-4">Deleting from Archive</h4>
+                <p>Want to permanently remove an item from your archive?</p>
+                <ol>
+                    <li>Go to <strong>"My List" → "Received Items"</strong> tab</li>
+                    <li>Click the <strong>trash icon (🗑️)</strong></li>
+                    <li>Confirm deletion</li>
+                </ol>
+                
+                <div class="alert alert-warning">
+                    <strong>⚠️ This permanently deletes the item.</strong> It can't be undone. The item is removed from your archive completely.
+                </div>
+            </section>
+            
+            <!-- Section 3: Children's Lists -->
+            <section id="children-lists" class="mb-5">
+                <h2>Managing Children's Lists</h2>
+                
+                <h4 class="mt-4">When to Create a Child Profile</h4>
+                <p>Create a child profile <strong>only for young children</strong> who can't manage their own wishlist yet (typically under 10-12 years old).</p>
+                
+                <div class="alert alert-danger">
+                    <h5 class="alert-heading">⚠️ Important Warnings</h5>
+                    <ul class="mb-0">
+                        <li><strong>Coordinate with your spouse!</strong> Only ONE parent should create the child's profile</li>
+                        <li><strong>Don't create for older children/adults</strong> - They should have their own account (text Paul for an invitation)</li>
+                        <li><strong>Check first!</strong> Your spouse may have already created it</li>
+                    </ul>
+                </div>
+                
+                <h4 class="mt-4">Creating a Child Profile</h4>
+                <ol>
+                    <li>Go to <strong>"My List"</strong></li>
+                    <li>Scroll to the bottom</li>
+                    <li>Click <strong>"Add Child Profile"</strong></li>
+                    <li>Read the confirmation warning carefully</li>
+                    <li>Click <strong>"Yes, Create Profile"</strong></li>
+                    <li>Enter your child's name</li>
+                    <li>Click <strong>"Add Child"</strong></li>
+                </ol>
+                
+                <h4 class="mt-4">Managing Your Child's List</h4>
+                <p>Once created, you'll see your child's list in the "Children's Lists You Manage" section.</p>
+                
+                <p><strong>To add/edit items for your child:</strong></p>
+                <ol>
+                    <li>Go to <strong>"My List"</strong></li>
+                    <li>Scroll to "Children's Lists You Manage"</li>
+                    <li>Click on your child's name</li>
+                    <li>Add, edit, organize, and manage items just like your own list</li>
+                    <li>Click <strong>"← Back to My List"</strong> to return to your list</li>
+                </ol>
+                
+                <p><strong>Everything works the same:</strong></p>
+                <ul>
+                    <li>Add items with descriptions and links</li>
+                    <li>Organize by priority</li>
+                    <li>Mark items as received after holidays</li>
+                    <li>Restore items from archive</li>
+                </ul>
+                
+                <h4 class="mt-4">What About the Other Parent?</h4>
+                <p>Both parents can <strong>view</strong> the child's list when shopping for family, but only the parent who created it can <strong>manage</strong> (add/edit/delete items). This prevents duplicate profiles and confusion.</p>
+                
+                <h4 class="mt-4">When to Graduate to Their Own Account</h4>
+                <p>When your child is old enough to manage their own wishlist (typically 10-12+), they can get their own account. Text Paul to send them an invitation!</p>
+            </section>
+            
+            <!-- Section 4: Shopping for Others -->
+            <section id="shopping" class="mb-5">
+                <h2>Shopping for Others</h2>
+                
+                <h4 class="mt-4">Finding Family Members' Lists</h4>
+                <ol>
+                    <li>Click <strong>"Dashboard"</strong> in the navigation bar</li>
+                    <li>You'll see all family members</li>
+                    <li>Click on anyone's name to view their wishlist</li>
+                </ol>
+                
+                <h4 class="mt-4">Understanding What You See</h4>
+                <p>When viewing someone's list:</p>
+                <ul>
+                    <li><strong>Priority order</strong> - Items at the top are most wanted</li>
+                    <li><strong>Active items only</strong> - You won't see items they've already received</li>
+                    <li><strong>Full details</strong> - Description, link to buy, price, any notes</li>
+                    <li><strong>Claim status</strong> - See if items are available or already claimed</li>
+                </ul>
+                
+                <div class="alert alert-info">
+                    <strong>💡 Pro Tip:</strong> If someone has prioritized their list well, start at the top for the gifts they want most!
+                </div>
+                
+                <h4 class="mt-4">Claiming Items</h4>
+                <p>When you decide to buy something for someone:</p>
+                <ol>
+                    <li>View their wishlist</li>
+                    <li>Find an item you want to buy</li>
+                    <li>Click the <strong>"Claim"</strong> button</li>
+                    <li>The button changes to <strong>"Unclaim"</strong> (green checkmark)</li>
+                </ol>
+                
+                <p><strong>What claiming does:</strong></p>
+                <ul>
+                    <li>✅ Tells other family members this item is covered</li>
+                    <li>✅ Prevents duplicate gifts</li>
+                    <li>❌ The list owner CANNOT see what's claimed</li>
+                    <li>❌ The list owner CANNOT see WHO claimed it</li>
+                </ul>
+                
+                <h4 class="mt-4">Unclaiming Items</h4>
+                <p>Changed your mind? No problem!</p>
+                <ol>
+                    <li>View the person's wishlist</li>
+                    <li>Find the item you claimed</li>
+                    <li>Click <strong>"Unclaim"</strong></li>
+                    <li>The item becomes available again for others</li>
+                </ol>
+                
+                <h4 class="mt-4">Filtering Available Items</h4>
+                <p>Want to see only items that haven't been claimed yet?</p>
+                <ol>
+                    <li>View someone's wishlist</li>
+                    <li>Toggle <strong>"Show only available items"</strong> at the top</li>
+                    <li>Claimed items are hidden</li>
+                </ol>
+                
+                <h4 class="mt-4">Multiple People Buying the Same Item</h4>
+                <p>Some items allow multiple claims (like gift cards or consumables):</p>
+                <ul>
+                    <li>These items show <strong>"Multiple allowed"</strong> or <strong>"Up to X people"</strong></li>
+                    <li>You can claim even if others already have</li>
+                    <li>Great for things like movie tickets, restaurant gift cards, etc.</li>
+                </ul>
+                
+                <h4 class="mt-4">Privacy Reminder</h4>
+                <div class="alert alert-warning">
+                    <strong>🤫 Keep It Secret!</strong>
+                    <ul class="mb-0">
+                        <li>Don't tell people what you claimed for them</li>
+                        <li>Don't discuss who's buying what in family chats</li>
+                        <li>The whole point is to maintain surprise!</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <!-- Section 5: Account Settings -->
+            <section id="account" class="mb-5">
+                <h2>Account Settings</h2>
+                
+                <h4 class="mt-4">Changing Your Password</h4>
+                <ol>
+                    <li>Click your name in the top right</li>
+                    <li>Select <strong>"Settings"</strong></li>
+                    <li>Enter your current password</li>
+                    <li>Enter your new password twice</li>
+                    <li>Click <strong>"Change Password"</strong></li>
+                </ol>
+                
+                <div class="alert alert-success">
+                    <strong>✓ Password changed!</strong> Use your new password next time you log in.
+                </div>
+                
+                <h4 class="mt-4">Forgot Your Password?</h4>
+                <p>If you're locked out:</p>
+                <ol>
+                    <li>Go to the login page</li>
+                    <li>Click <strong>"Forgot Password?"</strong></li>
+                    <li>Enter your email address</li>
+                    <li>Check your email for a reset link</li>
+                    <li>Click the link and set a new password</li>
+                </ol>
+                
+                <div class="card bg-light mt-3">
+                    <div class="card-body">
+                        <h5 class="card-title">What if the link expired?</h5>
+                        <p class="mb-0">Password reset links expire after 1 hour. If yours expired, just request a new one - it only takes a minute!</p>
+                    </div>
+                </div>
+                
+                <h4 class="mt-4">Updating Your Name</h4>
+                <ol>
+                    <li>Click your name in the top right</li>
+                    <li>Select <strong>"Settings"</strong></li>
+                    <li>Enter your new display name</li>
+                    <li>Click <strong>"Save"</strong></li>
+                </ol>
+                
+                <p><strong>Why your name matters:</strong> Your name appears on your wishlist and throughout the site. Choose something family members will recognize!</p>
+            </section>
+            
+            <!-- Section 6: Tips & Best Practices -->
+            <section id="tips" class="mb-5">
+                <h2>Tips & Best Practices</h2>
+                
+                <h4 class="mt-4">Creating a Great Wishlist</h4>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card border-success mb-3">
+                            <div class="card-header bg-success text-white">
+                                <strong>✓ DO</strong>
+                            </div>
+                            <div class="card-body">
+                                <ul>
+                                    <li>Be specific about size, color, model</li>
+                                    <li>Include links to where to buy</li>
+                                    <li>Add price ranges</li>
+                                    <li>Use priority ordering</li>
+                                    <li>Keep it updated year-round</li>
+                                    <li>Mark items as received after holidays</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card border-danger mb-3">
+                            <div class="card-header bg-danger text-white">
+                                <strong>✗ DON'T</strong>
+                            </div>
+                            <div class="card-body">
+                                <ul>
+                                    <li>Be vague ("a sweater")</li>
+                                    <li>Leave out important details</li>
+                                    <li>Add only during holidays</li>
+                                    <li>Let old items pile up</li>
+                                    <li>Forget to update if your preferences change</li>
+                                    <li>Tell people what you claimed</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h4 class="mt-4">After the Holidays</h4>
+                <ol>
+                    <li><strong>Mark items as received</strong> - Clean up your active list</li>
+                    <li><strong>Delete items you no longer want</strong> - Keep your list current</li>
+                    <li><strong>Add new ideas</strong> - Start building for next year</li>
+                    <li><strong>Thank your gift-givers!</strong> - Even though they don't know you knew 😊</li>
+                </ol>
+                
+                <h4 class="mt-4">Keeping Lists Updated</h4>
+                <p>Great wishlists are living documents:</p>
+                <ul>
+                    <li>Add items whenever you think of something</li>
+                    <li>Remove things if you buy them yourself</li>
+                    <li>Update preferences if they change</li>
+                    <li>Adjust priority as your wants change</li>
+                </ul>
+                
+                <h4 class="mt-4">Privacy Etiquette</h4>
+                <div class="alert alert-info">
+                    <strong>Golden Rule:</strong> Don't discuss who's buying what!
+                    <ul class="mb-0">
+                        <li>Keep your claims to yourself</li>
+                        <li>Don't ask others what they claimed</li>
+                        <li>Don't coordinate "I'll get this, you get that" publicly</li>
+                        <li>The surprise is part of the fun!</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <!-- Section 7: FAQ -->
+            <section id="faq" class="mb-5">
+                <h2>Frequently Asked Questions</h2>
+                
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                Can I have multiple wishlists?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                No, each person has one wishlist. However, you can organize it using priority ordering and mark items as received to keep it clean. If you manage children's lists, you'll see those separately.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                Can my spouse and I share a wishlist?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                No, each person needs their own account and wishlist. This way family members can shop for each of you individually. Both spouses can see and manage children's lists though!
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                What if someone buys something not on my list?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                That's totally fine! Power Family Wishlist is a helpful tool, not a requirement. People can always surprise you with off-list gifts. Just be gracious and appreciate the thought!
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                Can I see what others have claimed from my list?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                No - and this is by design! You can't see what's been claimed from YOUR list, and you can't see WHO claimed anything. This is the magic of the system - it prevents duplicates while keeping the surprise!
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                What if two people want the same item on different lists?
+                            </button>
+                        </h2>
+                        <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                That's fine! Each person's list is independent. If you and your cousin both want the same sweater, you can both add it to your lists. Claims are per-person, so there's no conflict.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                                Can I share my list with people outside the family?
+                            </button>
+                        </h2>
+                        <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Not directly through the system - it's private to invited family members only. However, you can always screenshot items or copy/paste information to share with friends outside the system.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">
+                                How do I delete my account?
+                            </button>
+                        </h2>
+                        <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Contact Paul (the family admin) and ask him to remove your account. He can delete your profile and all associated data.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq8">
+                                What happens if I claim something but don't buy it?
+                            </button>
+                        </h2>
+                        <div id="faq8" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Please unclaim it! This frees the item up for someone else to buy. If you forget to unclaim and don't buy it, the person might not get that gift at all. Be considerate and unclaim items you decide not to purchase.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq9">
+                                Can I see a history of what I bought for others?
+                            </button>
+                        </h2>
+                        <div id="faq9" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Not currently. Claims are designed for coordination, not history tracking. If you want to remember what you bought someone, keep your own notes outside the system.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq10">
+                                Is my credit card information stored?
+                            </button>
+                        </h2>
+                        <div id="faq10" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                No! Power Family Wishlist doesn't handle purchases at all. When you click links to buy items, you're taken to external retailers (Amazon, stores, etc.) where you complete the purchase. We never see or store any payment information.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Get Help -->
+            <section class="mb-5">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h4 class="card-title">Still Need Help?</h4>
+                        <p class="card-text">If you can't find what you're looking for or have questions not answered here, contact Paul (the family admin) for assistance.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

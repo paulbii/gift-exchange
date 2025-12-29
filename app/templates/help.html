@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Help - Getting Started{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <h1 class="mb-4">🎁 Welcome to Power Family Wishlist</h1>
+            
+            <div class="alert alert-info">
+                <strong>Already have an account?</strong> <a href="{{ url_for('auth.login') }}">Log in here</a> or view the <a href="{{ url_for('main.help_guide') }}">complete help guide</a>.
+            </div>
+            
+            <!-- What is it? -->
+            <section class="mb-5">
+                <h2>What is Power Family Wishlist?</h2>
+                <p>Power Family Wishlist is a private system for our family to share gift ideas and coordinate gift-giving. No more guessing what people want, no more duplicate gifts, and everyone still gets surprised!</p>
+                
+                <h4 class="mt-4">How It Works:</h4>
+                <ol>
+                    <li><strong>You create a wishlist</strong> - Add items you'd like to receive with links, descriptions, and prices</li>
+                    <li><strong>Family can browse your list</strong> - They see what you want and can claim items</li>
+                    <li><strong>Privacy is protected</strong> - You can't see what's been claimed from YOUR list, so gifts are still a surprise!</li>
+                    <li><strong>No duplicates</strong> - When someone claims an item, others know it's covered</li>
+                </ol>
+            </section>
+            
+            <!-- Getting Started -->
+            <section class="mb-5">
+                <h2>Getting Started</h2>
+                
+                <h4>Step 1: Request an Invitation</h4>
+                <p>Text your email address to Paul (the family admin).</p>
+                <p class="text-muted"><em>Example: "My email is sarah@example.com"</em></p>
+                
+                <h4 class="mt-4">Step 2: Receive Your Invitation</h4>
+                <p>You'll get your invitation in <strong>two ways</strong>:</p>
+                <ul>
+                    <li><strong>Email invitation</strong> - Check your inbox (and spam folder!)</li>
+                    <li><strong>Text message with link</strong> - From Paul as a backup</li>
+                </ul>
+                <p>Use either method - they both work!</p>
+                
+                <h4 class="mt-4">Step 3: Create Your Account</h4>
+                <ol>
+                    <li>Click the link from either the email or text message</li>
+                    <li>You'll see a welcome screen with your name</li>
+                    <li>Choose a password and enter it twice</li>
+                    <li>Click "Complete Setup"</li>
+                </ol>
+                
+                <div class="alert alert-success">
+                    <strong>✓ You're in!</strong> You'll be automatically logged in and can start adding items to your wishlist.
+                </div>
+                
+                <h4 class="mt-4">Tips:</h4>
+                <ul>
+                    <li>Keep both the email and text in case you need the link again</li>
+                    <li>Choose a password you'll remember</li>
+                    <li>Write it down somewhere safe if needed</li>
+                </ul>
+                
+                <div class="card bg-light mt-3">
+                    <div class="card-body">
+                        <h5 class="card-title">What if I don't receive anything?</h5>
+                        <ul class="mb-0">
+                            <li>Check your spam/junk folder for the email</li>
+                            <li>Make sure you gave Paul the correct email address</li>
+                            <li>Text Paul to resend the invitation link</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- How It Works -->
+            <section class="mb-5">
+                <h2>How Power Family Wishlist Works</h2>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">📝 Your Wishlist</h5>
+                                <p class="card-text">Add items you'd like to receive - include links, descriptions, sizes, colors, and prices to help gift-givers.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">👀 Browse Family Lists</h5>
+                                <p class="card-text">See what everyone wants. Lists show priority order - items at the top are most wanted.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">✅ Claim Items</h5>
+                                <p class="card-text">Click "Claim" when you decide to buy something. This tells others the item is covered (no duplicates!).</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">🎁 Stay Surprised</h5>
+                                <p class="card-text">You can't see what's been claimed from YOUR list. You also can't see WHO claimed anything. Privacy is built-in!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Quick Overview -->
+            <section class="mb-5">
+                <h2>Quick Feature Overview</h2>
+                
+                <h4>Managing Your Wishlist</h4>
+                <ul>
+                    <li>Add items with descriptions, links, and prices</li>
+                    <li>Organize by priority (most wanted at top)</li>
+                    <li>Edit or delete items anytime</li>
+                    <li>Mark items as "received" after holidays to keep your list clean</li>
+                </ul>
+                
+                <h4 class="mt-4">Shopping for Family</h4>
+                <ul>
+                    <li>Browse everyone's wishlists from the dashboard</li>
+                    <li>Claim items to let others know you've got it covered</li>
+                    <li>Unclaim if you change your mind</li>
+                    <li>Filter to see only available items</li>
+                </ul>
+                
+                <h4 class="mt-4">Children's Lists (For Parents)</h4>
+                <ul>
+                    <li>Create and manage wishlists for young children</li>
+                    <li>One parent creates the list, both can view it</li>
+                    <li>When kids are old enough, they get their own account</li>
+                </ul>
+                
+                <h4 class="mt-4">Archive (Received Items)</h4>
+                <ul>
+                    <li>Mark items as "received" after getting them as gifts</li>
+                    <li>Keep a history of past gifts</li>
+                    <li>Restore items to your active list if you want them again</li>
+                </ul>
+            </section>
+            
+            <!-- FAQ -->
+            <section class="mb-5">
+                <h2>Frequently Asked Questions</h2>
+                
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                Is Power Family Wishlist secure?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes! Your account is password-protected and only family members who have been invited can access the system. No one outside the family can see your wishlists.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                Do I need to download anything?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                No! Power Family Wishlist works in your web browser (Chrome, Safari, Firefox, etc.) on any device - computer, tablet, or phone. Just visit the website and log in.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                Can I use it on my phone?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Absolutely! The site works great on phones and tablets. You can add items, browse lists, and claim gifts right from your mobile device.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                What if I forget my password?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                No problem! On the login page, click "Forgot Password?" and enter your email. You'll receive a link to reset your password.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                Can I see what people bought for me?
+                            </button>
+                        </h2>
+                        <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                No - and that's by design! You can't see what's been claimed from YOUR list, and you can't see WHO claimed anything. This keeps the surprise intact while preventing duplicate gifts.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Get Started -->
+            <section class="mb-5">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <h3 class="card-title">Ready to Get Started?</h3>
+                        <p class="card-text">Text your email address to Paul to receive your invitation!</p>
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-light btn-lg mt-2">Already Have an Account? Log In</a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
