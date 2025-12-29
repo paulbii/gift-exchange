@@ -71,6 +71,8 @@ You've been invited to join the Power Family Wishlist!
 
 No more guessing what people want - everyone creates their own wishlist with the things they'd actually like to receive. You can see what everyone wants, claim items so there are no duplicates, and give gifts you know they'll love.
 
+And the best part? You can't see what's been claimed from YOUR list, so the surprise is still there!
+
 Click the link below to set up your account and add your wishlist:
 {invite_url}
 
@@ -94,6 +96,10 @@ Happy gift giving!
         <li>Claim items to let others know you've got it covered</li>
         <li>Give gifts you know they'll love</li>
     </ul>
+    
+    <p style="background-color: #f0f8ff; padding: 15px; border-left: 4px solid #0d6efd; margin: 20px 0;">
+        <strong>🎉 The best part?</strong> You can't see what's been claimed from YOUR list, so the surprise is still there!
+    </p>
     
     <p style="margin: 30px 0;">
         <a href="{invite_url}" style="background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Set Up Your Account</a>
