@@ -78,7 +78,6 @@ class ItemForm(FlaskForm):
     description = TextAreaField('Description', validators=[Optional()])
     url = StringField('Link/URL', validators=[Optional(), URL()])
     price = DecimalField('Price', validators=[Optional()], places=2)
-    notes = TextAreaField('Notes for Gift-Givers', validators=[Optional()])
     allow_multiple = BooleanField('Allow multiple people to buy this')
     max_claims = IntegerField('How many?', validators=[Optional(), NumberRange(min=1)], default=1)
     submit = SubmitField('Save Item')

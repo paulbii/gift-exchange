@@ -67,12 +67,6 @@
                                 </span>
                                 {% endif %}
                             </div>
-                            
-                            {% if item.notes %}
-                            <div class="mt-2 small">
-                                <strong>Notes:</strong> {{ item.notes }}
-                            </div>
-                            {% endif %}
                         </div>
                         
                         <div class="btn-group-vertical ms-3" role="group">
@@ -156,9 +150,50 @@
             
             {% if not is_child_list %}
             <div class="mt-4">
-                <a href="{{ url_for('main.add_child') }}" class="btn btn-outline-secondary">
+                <div class="alert alert-warning">
+                    <h6 class="alert-heading">
+                        <i class="bi bi-info-circle"></i> Child Profiles are for young children who can't manage their own account
+                    </h6>
+                    <ul class="mb-0 small">
+                        <li>For older children/adults: Ask for an invitation</li>
+                        <li>Only ONE parent should create a child's profile</li>
+                        <li>Check with your spouse first to avoid duplicates</li>
+                    </ul>
+                </div>
+                
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addChildModal">
                     <i class="bi bi-person-plus"></i> Add Child Profile
-                </a>
+                </button>
+            </div>
+            
+            <!-- Add Child Confirmation Modal -->
+            <div class="modal fade" id="addChildModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Create Child Profile?</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>This is for <strong>young children</strong> who need a parent to manage their wishlist.</p>
+                            
+                            <p><strong>Before continuing:</strong></p>
+                            <ul>
+                                <li>Is your child too young to manage their own account?</li>
+                                <li>Have you checked with your spouse? Only ONE of you should create this.</li>
+                            </ul>
+                            
+                            <div class="alert alert-info">
+                                <strong>For older children or adults:</strong><br>
+                                Ask for an invitation instead
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <a href="{{ url_for('main.add_child') }}" class="btn btn-primary">Yes, Create Profile</a>
+                        </div>
+                    </div>
+                </div>
             </div>
             {% endif %}
         </div>

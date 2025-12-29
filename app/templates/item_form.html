@@ -29,12 +29,18 @@
                         
                         <div class="mb-3">
                             {{ form.description.label(class="form-label") }}
-                            {{ form.description(class="form-control", rows=3, placeholder="Optional description...") }}
+                            <button type="button" class="btn btn-link btn-sm p-0 ms-1" data-bs-toggle="popover" data-bs-trigger="click" data-bs-content="Describe the item with details like size, color, specific model, etc." title="Description Help">
+                                <i class="bi bi-info-circle"></i>
+                            </button>
+                            {{ form.description(class="form-control", rows=3, placeholder="e.g., Size Medium, Navy Blue, Model XR-500") }}
                         </div>
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 {{ form.url.label(class="form-label") }}
+                                <button type="button" class="btn btn-link btn-sm p-0 ms-1" data-bs-toggle="popover" data-bs-trigger="click" data-bs-content="Link to where this can be purchased (Amazon, store website, etc.)" title="URL Help">
+                                    <i class="bi bi-info-circle"></i>
+                                </button>
                                 {{ form.url(class="form-control" + (" is-invalid" if form.url.errors else ""), placeholder="https://...") }}
                                 {% if form.url.errors %}
                                     <div class="invalid-feedback">{{ form.url.errors[0] }}</div>
@@ -43,17 +49,14 @@
                             
                             <div class="col-md-6 mb-3">
                                 {{ form.price.label(class="form-label") }}
+                                <button type="button" class="btn btn-link btn-sm p-0 ms-1" data-bs-toggle="popover" data-bs-trigger="click" data-bs-content="Optional - helps gift-givers know the budget" title="Price Help">
+                                    <i class="bi bi-info-circle"></i>
+                                </button>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
                                     {{ form.price(class="form-control", placeholder="0.00") }}
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            {{ form.notes.label(class="form-label") }}
-                            <small class="text-muted">(Only visible to gift-givers, not to you)</small>
-                            {{ form.notes(class="form-control", rows=2, placeholder="e.g., Prefer size Medium, color blue if available") }}
                         </div>
                         
                         <div class="card bg-light mb-3">
@@ -66,7 +69,10 @@
                                 
                                 <div id="maxClaimsGroup" style="display: none;">
                                     {{ form.max_claims.label(class="form-label") }}
-                                    <small class="text-muted">(Leave blank for unlimited)</small>
+                                    <button type="button" class="btn btn-link btn-sm p-0 ms-1" data-bs-toggle="popover" data-bs-trigger="click" data-bs-content="Usually 1 (only one person gets this). Set higher if multiple people can give the same gift." title="Max Claims Help">
+                                        <i class="bi bi-info-circle"></i>
+                                    </button>
+                                    <small class="text-muted d-block">(Leave blank for unlimited)</small>
                                     {{ form.max_claims(class="form-control", placeholder="e.g., 3") }}
                                 </div>
                             </div>
@@ -84,6 +90,11 @@
 </div>
 
 <script>
+// Initialize Bootstrap popovers
+const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
+
+// Allow multiple switch functionality
 const allowMultipleSwitch = document.getElementById('allowMultipleSwitch');
 const maxClaimsGroup = document.getElementById('maxClaimsGroup');
 

@@ -250,7 +250,6 @@ def add_item(list_id):
             description=form.description.data,
             url=form.url.data,
             price=form.price.data,
-            notes=form.notes.data,
             max_claims=max_claims_value,
             position=max_position + 1,
             created_by_id=current_user.id
@@ -288,7 +287,6 @@ def edit_item(item_id):
         item.description = form.description.data
         item.url = form.url.data
         item.price = form.price.data
-        item.notes = form.notes.data
         
         # Update max_claims
         if form.allow_multiple.data:
