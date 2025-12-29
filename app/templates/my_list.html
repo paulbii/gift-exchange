@@ -23,13 +23,45 @@
                 </a>
             </div>
             
-            {% if list.items %}
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mb-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                    {% if is_child_list %}
+                    <a class="nav-link {% if active_tab == 'active' %}active{% endif %}" 
+                       href="{{ url_for('main.manage_child_list', list_id=list.id, tab='active') }}">
+                        Active Items ({{ active_items|length }})
+                    </a>
+                    {% else %}
+                    <a class="nav-link {% if active_tab == 'active' %}active{% endif %}" 
+                       href="{{ url_for('main.my_list', tab='active') }}">
+                        Active Items ({{ active_items|length }})
+                    </a>
+                    {% endif %}
+                </li>
+                <li class="nav-item" role="presentation">
+                    {% if is_child_list %}
+                    <a class="nav-link {% if active_tab == 'received' %}active{% endif %}" 
+                       href="{{ url_for('main.manage_child_list', list_id=list.id, tab='received') }}">
+                        Received Items ({{ received_items|length }})
+                    </a>
+                    {% else %}
+                    <a class="nav-link {% if active_tab == 'received' %}active{% endif %}" 
+                       href="{{ url_for('main.my_list', tab='received') }}">
+                        Received Items ({{ received_items|length }})
+                    </a>
+                    {% endif %}
+                </li>
+            </ul>
+            
+            <!-- Active Items Tab -->
+            {% if active_tab == 'active' %}
+            {% if active_items %}
             <p class="text-muted">
                 <i class="bi bi-info-circle"></i> Items are shown in priority order (top = most wanted)
             </p>
             
             <div class="list-group">
-                {% for item in list.items %}
+                {% for item in active_items %}
                 <div class="list-group-item">
                     <div class="d-flex w-100 justify-content-between align-items-start">
                         <div class="flex-grow-1">
@@ -77,7 +109,7 @@
                             </a>
                             {% endif %}
                             
-                            {% if loop.index < list.items|length %}
+                            {% if loop.index < active_items|length %}
                             <a href="{{ url_for('main.move_item', item_id=item.id, direction='down') }}" 
                                class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-arrow-down"></i>
@@ -88,6 +120,12 @@
                                class="btn btn-sm btn-primary">
                                 <i class="bi bi-pencil"></i>
                             </a>
+                            
+                            <form method="POST" action="{{ url_for('main.mark_received', item_id=item.id) }}" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-success" title="Mark as Received">
+                                    <i class="bi bi-check-circle"></i>
+                                </button>
+                            </form>
                             
                             <button type="button" class="btn btn-sm btn-danger" 
                                     data-bs-toggle="modal" data-bs-target="#deleteModal{{ item.id }}">
@@ -127,8 +165,87 @@
             </div>
             {% else %}
             <div class="alert alert-info">
-                <i class="bi bi-info-circle"></i> Your list is empty. Click "Add Item" to get started!
+                <i class="bi bi-info-circle"></i> Your active list is empty. Click "Add Item" to get started!
             </div>
+            {% endif %}
+            {% endif %}
+            
+            <!-- Received Items Tab -->
+            {% if active_tab == 'received' %}
+            {% if received_items %}
+            <div class="list-group">
+                {% for item in received_items %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h5 class="mb-2">{{ item.title }}</h5>
+                            
+                            {% if item.description %}
+                            <p class="mb-2">{{ item.description }}</p>
+                            {% endif %}
+                            
+                            <div class="small text-muted">
+                                <span class="me-3">
+                                    <i class="bi bi-calendar-check"></i>
+                                    Received: {{ item.received_at.strftime('%b %d, %Y') }}
+                                </span>
+                                
+                                {% if item.price %}
+                                <span class="me-3">
+                                    <i class="bi bi-currency-dollar"></i> ${{ "%.2f"|format(item.price) }}
+                                </span>
+                                {% endif %}
+                                
+                                {% if item.url %}
+                                <span class="me-3">
+                                    <i class="bi bi-link-45deg"></i>
+                                    <a href="{{ item.url }}" target="_blank">Link</a>
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="btn-group-vertical ms-3" role="group">
+                            <a href="{{ url_for('main.restore_item', item_id=item.id) }}" 
+                               class="btn btn-sm btn-success" title="Restore to Active">
+                                <i class="bi bi-arrow-counterclockwise"></i> Restore
+                            </a>
+                            
+                            <button type="button" class="btn btn-sm btn-danger" 
+                                    data-bs-toggle="modal" data-bs-target="#deleteReceivedModal{{ item.id }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Delete Confirmation Modal for Received Items -->
+                    <div class="modal fade" id="deleteReceivedModal{{ item.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Delete Received Item?</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to permanently delete "{{ item.title }}"?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form method="POST" action="{{ url_for('main.delete_item', item_id=item.id) }}" style="display: inline;">
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No received items yet. Items you mark as received will appear here.
+            </div>
+            {% endif %}
             {% endif %}
             
             <!-- Managed Children's Lists -->

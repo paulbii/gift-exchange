@@ -101,6 +101,7 @@ class Item(db.Model):
     notes = db.Column(db.Text)  # Only visible to gift-givers
     max_claims = db.Column(db.Integer, default=1, nullable=False)  # 1 = single claim, higher = multiple allowed
     position = db.Column(db.Integer, nullable=False)  # For priority ordering
+    received_at = db.Column(db.DateTime)  # NULL = active, has date = received/archived
     created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -108,6 +109,10 @@ class Item(db.Model):
     # Relationships
     claims = db.relationship('Claim', backref='item', cascade='all, delete-orphan')
     created_by = db.relationship('User', foreign_keys=[created_by_id])
+    
+    def is_received(self):
+        """Check if item has been received/archived"""
+        return self.received_at is not None
     
     def claim_count(self):
         """Get number of current claims"""

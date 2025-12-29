@@ -168,7 +168,19 @@ def my_list():
     # Get managed child lists
     managed_lists = List.query.filter_by(managed_by_id=current_user.id).all()
     
-    return render_template('my_list.html', list=user_list, managed_lists=managed_lists)
+    # Get active tab from query parameter
+    active_tab = request.args.get('tab', 'active')
+    
+    # Separate active and received items
+    active_items = [item for item in user_list.items if not item.is_received()]
+    received_items = [item for item in user_list.items if item.is_received()]
+    
+    return render_template('my_list.html', 
+                         list=user_list, 
+                         managed_lists=managed_lists,
+                         active_items=active_items,
+                         received_items=received_items,
+                         active_tab=active_tab)
 
 
 @main.route('/manage-child-list/<int:list_id>')
@@ -189,7 +201,20 @@ def manage_child_list(list_id):
     # Get managed child lists for the sidebar
     managed_lists = List.query.filter_by(managed_by_id=current_user.id).all()
     
-    return render_template('my_list.html', list=child_list, managed_lists=managed_lists, is_child_list=True)
+    # Get active tab from query parameter
+    active_tab = request.args.get('tab', 'active')
+    
+    # Separate active and received items
+    active_items = [item for item in child_list.items if not item.is_received()]
+    received_items = [item for item in child_list.items if item.is_received()]
+    
+    return render_template('my_list.html', 
+                         list=child_list, 
+                         managed_lists=managed_lists, 
+                         is_child_list=True,
+                         active_items=active_items,
+                         received_items=received_items,
+                         active_tab=active_tab)
 
 
 @main.route('/list/<int:list_id>')
@@ -205,12 +230,14 @@ def view_list(list_id):
     # Get filter preference from query string
     show_available_only = request.args.get('available', 'false') == 'true'
     
-    items = view_list_obj.items
+    # Only show active items (not received)
+    items = [item for item in view_list_obj.items if not item.is_received()]
+    
     if show_available_only:
-        # Filter to only show items that can still be claimed
+        # Further filter to only show items that can still be claimed
         items = [item for item in items if item.is_available()]
     
-    total_items = len(view_list_obj.items)
+    total_items = len([item for item in view_list_obj.items if not item.is_received()])
     shown_items = len(items)
     
     return render_template('view_list.html', 
@@ -328,6 +355,65 @@ def delete_item(item_id):
     
     flash('Item deleted.', 'success')
     return redirect(url_for('main.my_list'))
+
+
+@main.route('/item/mark-received/<int:item_id>', methods=['POST'])
+@login_required
+def mark_received(item_id):
+    """Mark an item as received"""
+    item = Item.query.get_or_404(item_id)
+    
+    # Check permission
+    if not current_user.can_manage_list(item.list):
+        flash('You do not have permission to mark this item as received.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    item.received_at = datetime.utcnow()
+    db.session.commit()
+    
+    flash(f'"{item.title}" marked as received!', 'success')
+    return redirect(url_for('main.my_list'))
+
+
+@main.route('/item/restore/<int:item_id>', methods=['GET', 'POST'])
+@login_required
+def restore_item(item_id):
+    """Restore a received item to active list"""
+    item = Item.query.get_or_404(item_id)
+    
+    # Check permission
+    if not current_user.can_manage_list(item.list):
+        flash('You do not have permission to restore this item.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    form = ItemForm(obj=item)
+    
+    # Pre-populate allow_multiple checkbox
+    if request.method == 'GET':
+        form.allow_multiple.data = item.max_claims > 1
+        if item.max_claims > 1 and item.max_claims < 999:
+            form.max_claims.data = item.max_claims
+    
+    if form.validate_on_submit():
+        item.title = form.title.data
+        item.description = form.description.data
+        item.url = form.url.data
+        item.price = form.price.data
+        
+        # Update max_claims
+        if form.allow_multiple.data:
+            item.max_claims = form.max_claims.data if form.max_claims.data else 999
+        else:
+            item.max_claims = 1
+        
+        # Clear received_at to restore to active
+        item.received_at = None
+        
+        db.session.commit()
+        flash(f'"{item.title}" restored to your active list!', 'success')
+        return redirect(url_for('main.my_list'))
+    
+    return render_template('item_form.html', form=form, list=item.list, edit=True, item=item, restoring=True)
 
 
 @main.route('/item/move/<int:item_id>/<direction>')

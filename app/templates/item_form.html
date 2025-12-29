@@ -8,6 +8,18 @@
         <div class="col-md-8">
             <div class="card shadow-sm mt-4">
                 <div class="card-body p-4">
+                    {% if restoring %}
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-exclamation-triangle"></i> Restoring Archived Item
+                        </h6>
+                        <p class="mb-0">
+                            This item was marked as received on <strong>{{ item.received_at.strftime('%B %d, %Y') }}</strong>.
+                            Please verify the URL and price are still current before saving.
+                        </p>
+                    </div>
+                    {% endif %}
+                    
                     <h2 class="card-title mb-4">
                         {% if edit %}
                         <i class="bi bi-pencil"></i> Edit Item
