@@ -96,7 +96,7 @@ class Item(db.Model):
     list_id = db.Column(db.Integer, db.ForeignKey('lists.id'), nullable=False)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    url = db.Column(db.String(500))
+    url = db.Column(db.String(2000))  # Increased for long URLs with tracking parameters
     price = db.Column(db.Numeric(10, 2))  # Store as decimal for currency
     notes = db.Column(db.Text)  # Only visible to gift-givers
     max_claims = db.Column(db.Integer, default=1, nullable=False)  # 1 = single claim, higher = multiple allowed
