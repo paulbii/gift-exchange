@@ -378,42 +378,52 @@ def mark_received(item_id):
 @main.route('/item/restore/<int:item_id>', methods=['GET', 'POST'])
 @login_required
 def restore_item(item_id):
-    """Restore a received item to active list"""
-    item = Item.query.get_or_404(item_id)
+    """Restore a received item to active list (creates a copy)"""
+    original_item = Item.query.get_or_404(item_id)
     
     # Check permission
-    if not current_user.can_manage_list(item.list):
+    if not current_user.can_manage_list(original_item.list):
         flash('You do not have permission to restore this item.', 'danger')
         return redirect(url_for('main.dashboard'))
     
-    form = ItemForm(obj=item)
+    form = ItemForm(obj=original_item)
     
     # Pre-populate allow_multiple checkbox
     if request.method == 'GET':
-        form.allow_multiple.data = item.max_claims > 1
-        if item.max_claims > 1 and item.max_claims < 999:
-            form.max_claims.data = item.max_claims
+        form.allow_multiple.data = original_item.max_claims > 1
+        if original_item.max_claims > 1 and original_item.max_claims < 999:
+            form.max_claims.data = original_item.max_claims
     
     if form.validate_on_submit():
-        item.title = form.title.data
-        item.description = form.description.data
-        item.url = form.url.data
-        item.price = form.price.data
+        # Calculate position (append to end of active items)
+        active_items = [item for item in original_item.list.items if not item.is_received()]
+        max_position = max([item.position for item in active_items], default=0)
         
-        # Update max_claims
+        # Determine max_claims
+        max_claims_value = 1
         if form.allow_multiple.data:
-            item.max_claims = form.max_claims.data if form.max_claims.data else 999
-        else:
-            item.max_claims = 1
+            max_claims_value = form.max_claims.data if form.max_claims.data else 999
         
-        # Clear received_at to restore to active
-        item.received_at = None
+        # Create NEW item (copy) on active list
+        new_item = Item(
+            list_id=original_item.list_id,
+            title=form.title.data,
+            description=form.description.data,
+            url=form.url.data,
+            price=form.price.data,
+            max_claims=max_claims_value,
+            position=max_position + 1,
+            received_at=None,  # Active item
+            created_by_id=current_user.id
+        )
         
+        db.session.add(new_item)
         db.session.commit()
-        flash(f'"{item.title}" restored to your active list!', 'success')
+        
+        flash(f'"{new_item.title}" restored to your active list!', 'success')
         return redirect(url_for('main.my_list'))
     
-    return render_template('item_form.html', form=form, list=item.list, edit=True, item=item, restoring=True)
+    return render_template('item_form.html', form=form, list=original_item.list, edit=True, item=original_item, restoring=True)
 
 
 @main.route('/item/move/<int:item_id>/<direction>')
