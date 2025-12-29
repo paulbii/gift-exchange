@@ -62,6 +62,11 @@ def register(token):
         return redirect(url_for('main.index'))
     
     form = RegistrationForm()
+    
+    # Pre-populate name field with invited name (GET request only)
+    if request.method == 'GET':
+        form.name.data = user.name
+    
     if form.validate_on_submit():
         user.name = form.name.data
         user.set_password(form.password.data)
@@ -80,7 +85,7 @@ def register(token):
         flash('Welcome! Your account has been created.', 'success')
         return redirect(url_for('main.dashboard'))
     
-    return render_template('register.html', form=form, email=user.email)
+    return render_template('register.html', form=form, email=user.email, invited_name=user.name)
 
 
 @main.route('/forgot-password', methods=['GET', 'POST'])
@@ -407,7 +412,7 @@ def invite_user():
         # Create user with invite token
         user = User(
             email=form.email.data.lower(),
-            name='',  # Will be set during registration
+            name=form.name.data,  # Pre-populate with invited name (they can change it during registration)
             invited_by_id=current_user.id
         )
         user.set_password('temporary')  # Will be changed during registration

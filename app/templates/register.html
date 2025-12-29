@@ -8,15 +8,18 @@
         <div class="col-md-6">
             <div class="card shadow-sm mt-5">
                 <div class="card-body p-4">
-                    <h2 class="card-title text-center mb-4">Welcome!</h2>
-                    <p class="text-center">Complete your account setup for: <strong>{{ email }}</strong></p>
+                    <h2 class="card-title text-center mb-4">Welcome{% if invited_name %}, {{ invited_name }}{% endif %}!</h2>
+                    <p class="text-center text-muted mb-4">Complete your account setup</p>
                     
                     <form method="POST">
                         {{ form.hidden_tag() }}
                         
                         <div class="mb-3">
                             {{ form.name.label(class="form-label") }}
-                            {{ form.name(class="form-control") }}
+                            {{ form.name(class="form-control", placeholder="e.g., Sarah, John Jr., Mike S.") }}
+                            <small class="form-text text-muted">
+                                Use your first name, nickname, or add a suffix to help others identify you (especially if you share a name with someone else in the family)
+                            </small>
                         </div>
                         
                         <div class="mb-3">
