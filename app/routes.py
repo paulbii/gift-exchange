@@ -513,7 +513,7 @@ def unclaim_item(item_id):
 # ==================== HELP & DOCUMENTATION ====================
 
 @main.route('/help')
-def help():
+def public_help():
     """Public help page (pre-login)"""
     return render_template('help.html')
 

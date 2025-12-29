@@ -9,7 +9,7 @@
             <h1 class="mb-4">🎁 Welcome to Power Family Wishlist</h1>
             
             <div class="alert alert-info">
-                <strong>Already have an account?</strong> <a href="{{ url_for('auth.login') }}">Log in here</a> or view the <a href="{{ url_for('main.help_guide') }}">complete help guide</a>.
+                <strong>Already have an account?</strong> <a href="{{ url_for('main.login') }}">Log in here</a> or view the <a href="{{ url_for('main.help_guide') }}">complete help guide</a>.
             </div>
             
             <!-- What is it? -->
@@ -229,7 +229,7 @@
                     <div class="card-body text-center">
                         <h3 class="card-title">Ready to Get Started?</h3>
                         <p class="card-text">Text your email address to Paul to receive your invitation!</p>
-                        <a href="{{ url_for('auth.login') }}" class="btn btn-light btn-lg mt-2">Already Have an Account? Log In</a>
+                        <a href="{{ url_for('main.login') }}" class="btn btn-light btn-lg mt-2">Already Have an Account? Log In</a>
                     </div>
                 </div>
             </section>

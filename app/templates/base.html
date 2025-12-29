@@ -121,7 +121,7 @@
                 {% if current_user.is_authenticated %}
                 • <a href="{{ url_for('main.help_guide') }}">Help</a>
                 {% else %}
-                • <a href="{{ url_for('main.help') }}">Help</a>
+                • <a href="{{ url_for('main.public_help') }}">Help</a>
                 {% endif %}
             </small>
         </div>
