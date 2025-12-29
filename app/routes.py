@@ -171,6 +171,27 @@ def my_list():
     return render_template('my_list.html', list=user_list, managed_lists=managed_lists)
 
 
+@main.route('/manage-child-list/<int:list_id>')
+@login_required
+def manage_child_list(list_id):
+    """Manage a child's list"""
+    child_list = List.query.get_or_404(list_id)
+    
+    # Check if current user manages this list
+    if not current_user.can_manage_list(child_list):
+        flash('You do not have permission to manage this list.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    # Don't allow managing your own list here (use my_list for that)
+    if child_list.owner_id == current_user.id:
+        return redirect(url_for('main.my_list'))
+    
+    # Get managed child lists for the sidebar
+    managed_lists = List.query.filter_by(managed_by_id=current_user.id).all()
+    
+    return render_template('my_list.html', list=child_list, managed_lists=managed_lists, is_child_list=True)
+
+
 @main.route('/list/<int:list_id>')
 @login_required
 def view_list(list_id):

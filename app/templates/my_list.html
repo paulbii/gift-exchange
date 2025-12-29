@@ -6,6 +6,14 @@
 <div class="container">
     <div class="row">
         <div class="col-12">
+            {% if is_child_list %}
+            <div class="mb-3">
+                <a href="{{ url_for('main.my_list') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left"></i> Back to My List
+                </a>
+            </div>
+            {% endif %}
+            
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1>
                     <i class="bi bi-list-ul"></i> {{ list.name }}
@@ -130,12 +138,12 @@
             {% endif %}
             
             <!-- Managed Children's Lists -->
-            {% if managed_lists %}
+            {% if managed_lists and not is_child_list %}
             <div class="mt-5">
                 <h3>Children's Lists You Manage</h3>
                 <div class="list-group mt-3">
                     {% for child_list in managed_lists %}
-                    <a href="{{ url_for('main.my_list') }}" class="list-group-item list-group-item-action">
+                    <a href="{{ url_for('main.manage_child_list', list_id=child_list.id) }}" class="list-group-item list-group-item-action">
                         <div class="d-flex w-100 justify-content-between">
                             <h5 class="mb-1">{{ child_list.name }}</h5>
                             <small>{{ child_list.items|length }} items</small>
@@ -146,11 +154,13 @@
             </div>
             {% endif %}
             
+            {% if not is_child_list %}
             <div class="mt-4">
                 <a href="{{ url_for('main.add_child') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-person-plus"></i> Add Child Profile
                 </a>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
