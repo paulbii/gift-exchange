@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4"><i class="bi bi-people"></i> User Management</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <strong>Admin Tools:</strong> Archive users to hide them from the dashboard. Promote child profiles when kids are ready to manage their own wishlists. Be careful with permanent deletions - they cannot be undone!
+            </div>
+        </div>
+    </div>
+    
+    <!-- Active Users -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Active Users ({{ active_users|length }})</h4>
+        </div>
+        <div class="card-body">
+            {% if active_users %}
+            {% for user in active_users %}
+            <div class="border-bottom pb-3 mb-3">
+                <div class="row align-items-start">
+                    <div class="col-md-8">
+                        <h5>
+                            {{ user.name }}
+                            {% if user.is_admin %}
+                            <span class="badge bg-danger">Admin</span>
+                            {% endif %}
+                            {% if user.promoted_from_child %}
+                            <span class="badge bg-success">Promoted</span>
+                            {% endif %}
+                        </h5>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-envelope"></i> {{ user.email }}<br>
+                            <i class="bi bi-calendar"></i> Created: {{ user.created_at.strftime('%b %d, %Y') }}
+                            {% if user.promoted_from_child %}
+                            <br><i class="bi bi-arrow-up-circle"></i> Promoted: {{ user.promoted_at.strftime('%b %d, %Y') }}
+                            {% endif %}
+                        </p>
+                        
+                        <!-- Managed Children -->
+                        {% if user.managed_lists %}
+                        <div class="mt-2">
+                            <strong>Manages {{ user.managed_lists|length }} child profile(s):</strong>
+                            <ul class="list-unstyled ms-3 mt-2">
+                                {% for child_list in user.managed_lists %}
+                                {% set child_user = child_list.owner %}
+                                <li class="mb-2">
+                                    <i class="bi bi-person"></i> {{ child_list.name }}
+                                    <span class="ms-2">
+                                        <a href="{{ url_for('main.promote_child', child_id=child_user.id) }}" 
+                                           class="btn btn-sm btn-success" title="Promote to full account">
+                                            <i class="bi bi-arrow-up-circle"></i> Promote
+                                        </a>
+                                        <a href="{{ url_for('main.archive_child', child_id=child_user.id) }}" 
+                                           class="btn btn-sm btn-warning" title="Archive child profile">
+                                            <i class="bi bi-archive"></i> Archive
+                                        </a>
+                                    </span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-4 text-end">
+                        <a href="{{ url_for('main.view_list', list_id=user.owned_list.id) }}" 
+                           class="btn btn-sm btn-outline-primary mb-1">
+                            <i class="bi bi-eye"></i> View List
+                        </a>
+                        {% if not user.is_admin or (active_users|length > 1 and user.id != current_user.id) %}
+                        <a href="{{ url_for('main.archive_user', user_id=user.id) }}" 
+                           class="btn btn-sm btn-warning mb-1">
+                            <i class="bi bi-archive"></i> Archive
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-muted">No active users.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Archived Users -->
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="mb-0">Archived Users ({{ archived_users|length }})</h4>
+        </div>
+        <div class="card-body">
+            {% if archived_users %}
+            {% for user in archived_users %}
+            <div class="border-bottom pb-3 mb-3">
+                <div class="row align-items-start">
+                    <div class="col-md-8">
+                        <h5>
+                            {{ user.name }}
+                            {% if user.is_child_profile() %}
+                            <span class="badge bg-info">Child Profile</span>
+                            {% endif %}
+                        </h5>
+                        <p class="text-muted mb-2">
+                            {% if not user.is_child_profile() %}
+                            <i class="bi bi-envelope"></i> {{ user.email }}<br>
+                            {% endif %}
+                            <i class="bi bi-archive"></i> Archived: {{ user.archived_at.strftime('%b %d, %Y') }}
+                            {% if user.archived_by %}
+                            by {{ user.archived_by.name }}
+                            {% endif %}
+                            {% if user.archived_reason %}
+                            <br><i class="bi bi-chat-left-text"></i> Reason: {{ user.archived_reason }}
+                            {% endif %}
+                        </p>
+                        
+                        <!-- Managed Children (if archived parent) -->
+                        {% if user.managed_lists %}
+                        <div class="alert alert-warning mt-2">
+                            <small><i class="bi bi-exclamation-triangle"></i> This user still manages child profiles. They will be archived too if you restore this user.</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-4 text-end">
+                        <a href="{{ url_for('main.restore_user', user_id=user.id) }}" 
+                           class="btn btn-sm btn-success mb-1">
+                            <i class="bi bi-arrow-counterclockwise"></i> Restore
+                        </a>
+                        <button type="button" class="btn btn-sm btn-danger mb-1" 
+                                data-bs-toggle="modal" data-bs-target="#deleteModal{{ user.id }}">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Delete Confirmation Modal -->
+            <div class="modal fade" id="deleteModal{{ user.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title">Permanently Delete User?</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-danger">
+                                <h6 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> This Cannot Be Undone!</h6>
+                                <p>Permanently deleting <strong>{{ user.name }}</strong> will:</p>
+                                <ul>
+                                    <li>Delete their wishlist and all items</li>
+                                    <li>Remove all their claims on other people's items</li>
+                                    <li>Remove their account completely</li>
+                                    <li><strong>This is permanent and cannot be reversed!</strong></li>
+                                </ul>
+                            </div>
+                            
+                            <form method="POST" action="{{ url_for('main.delete_user', user_id=user.id) }}">
+                                {{ delete_forms[user.id].hidden_tag() }}
+                                
+                                <div class="mb-3">
+                                    {{ delete_forms[user.id].admin_password.label(class="form-label") }}
+                                    {{ delete_forms[user.id].admin_password(class="form-control") }}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ delete_forms[user.id].confirm_email.label(class="form-label") }}
+                                    {{ delete_forms[user.id].confirm_email(class="form-control", placeholder=user.email if not user.is_child_profile() else user.name) }}
+                                    <small class="form-text text-muted">Type to confirm: {{ user.email if not user.is_child_profile() else user.name }}</small>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    {{ delete_forms[user.id].submit(class="btn btn-danger") }}
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-muted">No archived users.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

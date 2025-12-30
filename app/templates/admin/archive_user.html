@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Archive User{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning">
+                    <h4 class="mb-0"><i class="bi bi-archive"></i> Archive User</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Archive {{ user.name }}?</h5>
+                    
+                    <div class="alert alert-info mt-3">
+                        <h6 class="alert-heading">What happens when you archive:</h6>
+                        <ul class="mb-0">
+                            <li>User cannot log in</li>
+                            <li>List doesn't appear on dashboard</li>
+                            <li>Claims they made stay intact (preserved)</li>
+                            <li>Can be restored later if needed</li>
+                        </ul>
+                    </div>
+                    
+                    {% if user.has_managed_children() %}
+                    <div class="alert alert-danger">
+                        <h6 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Cannot Archive!</h6>
+                        <p><strong>{{ user.name }}</strong> manages {{ user.managed_lists|length }} child profile(s):</p>
+                        <ul>
+                            {% for child_list in user.managed_lists %}
+                            <li>{{ child_list.name }}</li>
+                            {% endfor %}
+                        </ul>
+                        <p class="mb-0"><strong>You must first:</strong></p>
+                        <ol class="mb-0">
+                            <li>Promote children to full accounts, OR</li>
+                            <li>Archive their child profiles, OR</li>
+                            <li>Transfer management to another parent</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="d-grid mt-3">
+                        <a href="{{ url_for('main.user_management') }}" class="btn btn-secondary">Back to User Management</a>
+                    </div>
+                    {% else %}
+                    <form method="POST" class="mt-3">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.reason.label(class="form-label") }}
+                            {{ form.reason(class="form-control", rows=3, placeholder="e.g., User requested account closure, Duplicate account, etc.") }}
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            {{ form.confirm(class="form-check-input") }}
+                            {{ form.confirm.label(class="form-check-label") }}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-warning") }}
+                            <a href="{{ url_for('main.user_management') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

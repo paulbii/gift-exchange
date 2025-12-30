@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Promote to Full Account{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-arrow-up-circle"></i> Promote to Full Account</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Promote {{ child.name }}</h5>
+                    
+                    <div class="alert alert-info mt-3">
+                        <h6 class="alert-heading">What happens when you promote:</h6>
+                        <ul class="mb-0">
+                            <li>{{ child.name }} gets their own login account</li>
+                            <li>Their wishlist stays completely intact</li>
+                            <li>They can manage their own items</li>
+                            <li>You can still view and shop for them</li>
+                            <li>They become independent!</li>
+                        </ul>
+                    </div>
+                    
+                    <form method="POST" class="mt-4">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.email.label(class="form-label") }}
+                            {{ form.email(class="form-control", placeholder="child@example.com") }}
+                            <div class="form-text">
+                                Enter {{ child.name }}'s email address. They'll receive an invitation to set their password.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            {{ form.send_invitation(class="form-check-input", checked=True) }}
+                            {{ form.send_invitation.label(class="form-check-label") }}
+                            <div class="form-text">
+                                Recommended: They'll get an email right away with setup instructions.
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-success">
+                            <strong>✓ History Preserved!</strong> All of {{ child.name }}'s wishlist items, received items, and claims will transfer to their new account.
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-success btn-lg") }}
+                            <a href="{{ url_for('main.user_management') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

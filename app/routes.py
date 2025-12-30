@@ -5,7 +5,7 @@ from app import db
 from app.models import User, List, Item, Claim
 from app.forms import (LoginForm, RegistrationForm, InviteUserForm, PasswordResetRequestForm,
                        PasswordResetForm, ProfileForm, ChangeEmailForm, ChangePasswordForm,
-                       ItemForm, AddChildForm)
+                       ItemForm, AddChildForm, PromoteChildForm, ArchiveUserForm, DeleteUserForm)
 from app.email import send_invite_email, send_password_reset_email, send_item_deleted_notification
 
 main = Blueprint('main', __name__)
@@ -31,6 +31,9 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data.lower()).first()
         if user and user.check_password(form.password.data):
+            if not user.is_active:
+                flash('This account has been archived. Please contact the administrator.', 'danger')
+                return render_template('login.html', form=form)
             login_user(user, remember=form.remember_me.data)
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('main.dashboard'))
@@ -139,12 +142,16 @@ def reset_password(token):
 @login_required
 def dashboard():
     """Main dashboard showing all family members and their lists"""
-    # Get all users who have completed setup (have a password)
-    family_members = User.query.filter(User.password_hash.isnot(None)).all()
+    # Get all active users who have completed setup (have a password)
+    family_members = User.query.filter(
+        User.password_hash.isnot(None),
+        User.is_active == True
+    ).all()
     
-    # Get lists with owner information
+    # Get lists with owner information (only active users)
     lists = List.query.join(User, List.owner_id == User.id).filter(
-        User.password_hash.isnot(None)
+        User.password_hash.isnot(None),
+        User.is_active == True
     ).all()
     
     return render_template('dashboard.html', family_members=family_members, lists=lists)
@@ -636,5 +643,216 @@ def add_child():
     return render_template('add_child.html', form=form)
 
 
-# Note: Graduate child functionality would go here (convert child to full user)
-# This would involve sending an invite email and transferring ownership
+# ==================== USER MANAGEMENT (ADMIN) ====================
+
+@main.route('/admin/users')
+@login_required
+def user_management():
+    """Admin: View all users and manage them"""
+    if not current_user.is_admin:
+        flash('Only administrators can access user management.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    # Get all users, separated by active status
+    active_users = User.query.filter_by(is_active=True).order_by(User.name).all()
+    archived_users = User.query.filter_by(is_active=False).order_by(User.archived_at.desc()).all()
+    
+    # Create delete forms for archived users
+    delete_forms = {}
+    for user in archived_users:
+        delete_forms[user.id] = DeleteUserForm()
+    
+    return render_template('admin/user_management.html',
+                         active_users=active_users,
+                         archived_users=archived_users,
+                         delete_forms=delete_forms)
+
+
+@main.route('/admin/users/<int:user_id>/archive', methods=['GET', 'POST'])
+@login_required
+def archive_user(user_id):
+    """Admin: Archive a user account"""
+    if not current_user.is_admin:
+        flash('Only administrators can archive users.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    user = User.query.get_or_404(user_id)
+    
+    # Prevent archiving the last admin
+    if user.is_admin:
+        admin_count = User.query.filter_by(is_admin=True, is_active=True).count()
+        if admin_count <= 1:
+            flash('Cannot archive the last admin user.', 'danger')
+            return redirect(url_for('main.user_management'))
+    
+    # Check if user manages children
+    if user.has_managed_children():
+        form = ArchiveUserForm()
+        return render_template('admin/archive_user.html', user=user, form=form)
+    
+    form = ArchiveUserForm()
+    
+    if form.validate_on_submit():
+        if not form.confirm.data:
+            flash('You must confirm to archive this user.', 'danger')
+            return redirect(url_for('main.archive_user', user_id=user_id))
+        
+        user.archive(by_user=current_user, reason=form.reason.data)
+        db.session.commit()
+        
+        flash(f'{user.name} has been archived.', 'success')
+        return redirect(url_for('main.user_management'))
+    
+    return render_template('admin/archive_user.html', user=user, form=form)
+
+
+@main.route('/admin/users/<int:user_id>/restore', methods=['POST'])
+@login_required
+def restore_user(user_id):
+    """Admin: Restore an archived user"""
+    if not current_user.is_admin:
+        flash('Only administrators can restore users.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    user = User.query.get_or_404(user_id)
+    
+    if user.is_active:
+        flash('User is already active.', 'info')
+        return redirect(url_for('main.user_management'))
+    
+    user.restore()
+    db.session.commit()
+    
+    flash(f'{user.name} has been restored.', 'success')
+    return redirect(url_for('main.user_management'))
+
+
+@main.route('/admin/users/<int:user_id>/delete', methods=['POST'])
+@login_required
+def delete_user(user_id):
+    """Admin: Permanently delete a user (scary!)"""
+    if not current_user.is_admin:
+        flash('Only administrators can delete users.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    user = User.query.get_or_404(user_id)
+    form = DeleteUserForm()
+    
+    if form.validate_on_submit():
+        # Verify admin password
+        if not current_user.check_password(form.admin_password.data):
+            flash('Incorrect admin password.', 'danger')
+            return redirect(url_for('main.user_management'))
+        
+        # Verify email confirmation
+        expected_confirm = user.email if not user.is_child_profile() else user.name
+        if form.confirm_email.data != expected_confirm:
+            flash('Email confirmation does not match.', 'danger')
+            return redirect(url_for('main.user_management'))
+        
+        # Delete the user (CASCADE will handle related data)
+        user_name = user.name
+        db.session.delete(user)
+        db.session.commit()
+        
+        flash(f'{user_name} has been permanently deleted.', 'warning')
+        return redirect(url_for('main.user_management'))
+    
+    flash('Invalid form submission.', 'danger')
+    return redirect(url_for('main.user_management'))
+
+
+@main.route('/admin/child/<int:child_id>/archive', methods=['POST'])
+@login_required
+def archive_child(child_id):
+    """Admin: Archive a child profile"""
+    if not current_user.is_admin:
+        flash('Only administrators can archive child profiles.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    child = User.query.get_or_404(child_id)
+    
+    if not child.is_child_profile():
+        flash('This is not a child profile.', 'danger')
+        return redirect(url_for('main.user_management'))
+    
+    child.archive(by_user=current_user, reason="Child profile archived")
+    db.session.commit()
+    
+    flash(f'{child.name} has been archived.', 'success')
+    return redirect(url_for('main.user_management'))
+
+
+@main.route('/admin/child/<int:child_id>/restore', methods=['POST'])
+@login_required
+def restore_child(child_id):
+    """Admin: Restore an archived child profile"""
+    if not current_user.is_admin:
+        flash('Only administrators can restore child profiles.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    child = User.query.get_or_404(child_id)
+    
+    if not child.is_child_profile():
+        flash('This is not a child profile.', 'danger')
+        return redirect(url_for('main.user_management'))
+    
+    child.restore()
+    db.session.commit()
+    
+    flash(f'{child.name} has been restored.', 'success')
+    return redirect(url_for('main.user_management'))
+
+
+@main.route('/admin/child/<int:child_id>/promote', methods=['GET', 'POST'])
+@login_required
+def promote_child(child_id):
+    """Admin: Promote child profile to full account"""
+    if not current_user.is_admin:
+        flash('Only administrators can promote child profiles.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    child = User.query.get_or_404(child_id)
+    
+    if not child.is_child_profile():
+        flash('This user is already a full account.', 'info')
+        return redirect(url_for('main.user_management'))
+    
+    form = PromoteChildForm()
+    
+    if form.validate_on_submit():
+        email = form.email.data.lower()
+        
+        # Check if email already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash('This email address is already associated with an account.', 'danger')
+            return redirect(url_for('main.promote_child', child_id=child_id))
+        
+        # Update child to full account
+        child.email = email
+        child.promoted_from_child = True
+        child.promoted_at = datetime.utcnow()
+        child.promoted_by_id = current_user.id
+        
+        # Remove parent management
+        if child.owned_list:
+            child.owned_list.managed_by_id = None
+        
+        # Generate invitation token
+        token = child.generate_invite_token()
+        
+        db.session.commit()
+        
+        # Send invitation email if requested
+        if form.send_invitation.data:
+            invite_url = url_for('main.register', token=token, _external=True)
+            send_invite_email(child.email, child.name, invite_url)
+            flash(f'{child.name} has been promoted! Invitation email sent to {email}.', 'success')
+        else:
+            flash(f'{child.name} has been promoted! Share this invitation link with them.', 'success')
+        
+        return redirect(url_for('main.user_management'))
+    
+    return render_template('admin/promote_child.html', child=child, form=form)
+

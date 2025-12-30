@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
@@ -28,11 +28,24 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
+    # Archiving fields
+    is_active = db.Column(db.Boolean, default=True, nullable=False, index=True)
+    archived_at = db.Column(db.DateTime)
+    archived_by_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    archived_reason = db.Column(db.Text)
+    
+    # Child promotion fields
+    promoted_from_child = db.Column(db.Boolean, default=False, nullable=False)
+    promoted_at = db.Column(db.DateTime)
+    promoted_by_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    
     # Relationships
     owned_list = db.relationship('List', foreign_keys='List.owner_id', backref='owner', uselist=False, cascade='all, delete-orphan')
     managed_lists = db.relationship('List', foreign_keys='List.managed_by_id', backref='manager')
     claims = db.relationship('Claim', backref='claimer', cascade='all, delete-orphan')
     invited_users = db.relationship('User', backref=db.backref('invited_by', remote_side=[id]))
+    archived_by = db.relationship('User', foreign_keys=[archived_by_id], remote_side=[id], backref='archived_users')
+    promoted_by = db.relationship('User', foreign_keys=[promoted_by_id], remote_side=[id], backref='promoted_users')
     
     def set_password(self, password):
         """Hash and set password"""
@@ -65,6 +78,28 @@ class User(UserMixin, db.Model):
     def can_see_claims(self, list_obj):
         """Check if user can see claim status on a list (cannot see own/managed lists)"""
         return not self.can_manage_list(list_obj)
+    
+    def is_child_profile(self):
+        """Check if this is a child profile (managed by someone, no email/password)"""
+        return self.owned_list and self.owned_list.managed_by_id is not None
+    
+    def has_managed_children(self):
+        """Check if user manages any child profiles"""
+        return len(self.managed_lists) > 0
+    
+    def archive(self, by_user, reason=""):
+        """Archive this user"""
+        self.is_active = False
+        self.archived_at = datetime.utcnow()
+        self.archived_by_id = by_user.id
+        self.archived_reason = reason
+    
+    def restore(self):
+        """Restore an archived user"""
+        self.is_active = True
+        self.archived_at = None
+        self.archived_by_id = None
+        self.archived_reason = None
     
     def __repr__(self):
         return f'<User {self.email}>'

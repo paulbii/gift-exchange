@@ -87,3 +87,25 @@ class AddChildForm(FlaskForm):
     """Add a child profile (parent-managed)"""
     name = StringField('Child\'s Name', validators=[DataRequired()])
     submit = SubmitField('Add Child')
+
+
+class PromoteChildForm(FlaskForm):
+    """Promote child profile to full account"""
+    email = StringField('Email Address', validators=[DataRequired(), Email()])
+    send_invitation = BooleanField('Send invitation email now', default=True)
+    submit = SubmitField('Promote to Full Account')
+
+
+class ArchiveUserForm(FlaskForm):
+    """Archive a user account"""
+    reason = TextAreaField('Reason for archiving (optional)')
+    confirm = BooleanField('I understand this will hide the user from the dashboard', validators=[DataRequired()])
+    submit = SubmitField('Archive User')
+
+
+class DeleteUserForm(FlaskForm):
+    """Permanently delete a user (scary!)"""
+    admin_password = PasswordField('Your Admin Password', validators=[DataRequired()])
+    confirm_email = StringField('Type user\'s email to confirm', validators=[DataRequired()])
+    submit = SubmitField('Permanently Delete User')
+
