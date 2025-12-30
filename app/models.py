@@ -43,7 +43,7 @@ class User(UserMixin, db.Model):
     owned_list = db.relationship('List', foreign_keys='List.owner_id', backref='owner', uselist=False, cascade='all, delete-orphan')
     managed_lists = db.relationship('List', foreign_keys='List.managed_by_id', backref='manager')
     claims = db.relationship('Claim', backref='claimer', cascade='all, delete-orphan')
-    invited_users = db.relationship('User', backref=db.backref('invited_by', remote_side=[id]))
+    invited_users = db.relationship('User', foreign_keys=[invited_by_id], backref=db.backref('invited_by', remote_side=[id]))
     archived_by = db.relationship('User', foreign_keys=[archived_by_id], remote_side=[id], backref='archived_users')
     promoted_by = db.relationship('User', foreign_keys=[promoted_by_id], remote_side=[id], backref='promoted_users')
     
