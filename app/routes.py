@@ -196,14 +196,10 @@ def manage_child_list(list_id):
     """Manage a child's list"""
     child_list = List.query.get_or_404(list_id)
     
-    # Check if current user manages this list
-    if not current_user.can_manage_list(child_list):
+    # Check if current user manages this list or is admin
+    if not current_user.can_manage_list(child_list) and not current_user.is_admin:
         flash('You do not have permission to manage this list.', 'danger')
         return redirect(url_for('main.dashboard'))
-    
-    # Don't allow managing your own list here (use my_list for that)
-    if child_list.owner_id == current_user.id:
-        return redirect(url_for('main.my_list'))
     
     # Get managed child lists for the sidebar
     managed_lists = List.query.filter_by(managed_by_id=current_user.id).all()
@@ -215,10 +211,13 @@ def manage_child_list(list_id):
     active_items = [item for item in child_list.items if not item.is_received()]
     received_items = [item for item in child_list.items if item.is_received()]
     
+    # Check if this is the user's own list or a child's
+    is_own_list = (child_list.owner_id == current_user.id)
+    
     return render_template('my_list.html', 
                          list=child_list, 
                          managed_lists=managed_lists, 
-                         is_child_list=True,
+                         is_child_list=(not is_own_list),
                          active_items=active_items,
                          received_items=received_items,
                          active_tab=active_tab)
