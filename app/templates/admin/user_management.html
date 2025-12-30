@@ -56,10 +56,11 @@
                                            class="btn btn-sm btn-success" title="Promote to full account">
                                             <i class="bi bi-arrow-up-circle"></i> Promote
                                         </a>
-                                        <a href="{{ url_for('main.archive_child', child_id=child_user.id) }}" 
-                                           class="btn btn-sm btn-warning" title="Archive child profile">
-                                            <i class="bi bi-archive"></i> Archive
-                                        </a>
+                                        <form method="POST" action="{{ url_for('main.archive_child', child_id=child_user.id) }}" style="display: inline;">
+                                            <button type="submit" class="btn btn-sm btn-warning" title="Archive child profile">
+                                                <i class="bi bi-archive"></i> Archive
+                                            </button>
+                                        </form>
                                     </span>
                                 </li>
                                 {% endfor %}
@@ -130,10 +131,11 @@
                     </div>
                     
                     <div class="col-md-4 text-end">
-                        <a href="{{ url_for('main.restore_user', user_id=user.id) }}" 
-                           class="btn btn-sm btn-success mb-1">
-                            <i class="bi bi-arrow-counterclockwise"></i> Restore
-                        </a>
+                        <form method="POST" action="{{ url_for('main.restore_user', user_id=user.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-success mb-1">
+                                <i class="bi bi-arrow-counterclockwise"></i> Restore
+                            </button>
+                        </form>
                         <button type="button" class="btn btn-sm btn-danger mb-1" 
                                 data-bs-toggle="modal" data-bs-target="#deleteModal{{ user.id }}">
                             <i class="bi bi-trash"></i> Delete
