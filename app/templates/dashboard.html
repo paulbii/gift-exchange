@@ -50,9 +50,15 @@
                             {% endif %}
                             
                             {% if current_user.can_manage_list(list) %}
-                            <a href="{{ url_for('main.my_list') }}" class="btn btn-primary btn-sm">
-                                <i class="bi bi-pencil"></i> Manage List
-                            </a>
+                                {% if list.owner_id == current_user.id %}
+                                <a href="{{ url_for('main.my_list') }}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-pencil"></i> Manage List
+                                </a>
+                                {% else %}
+                                <a href="{{ url_for('main.manage_child_list', list_id=list.id) }}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-pencil"></i> Manage List
+                                </a>
+                                {% endif %}
                             {% else %}
                             <a href="{{ url_for('main.view_list', list_id=list.id) }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-eye"></i> View List
