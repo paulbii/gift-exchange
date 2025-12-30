@@ -84,8 +84,8 @@ class User(UserMixin, db.Model):
         return self.owned_list and self.owned_list.managed_by_id is not None
     
     def has_managed_children(self):
-        """Check if user manages any child profiles"""
-        return len(self.managed_lists) > 0
+        """Check if user manages any active child profiles"""
+        return any(child_list.owner.is_active for child_list in self.managed_lists)
     
     def archive(self, by_user, reason=""):
         """Archive this user"""

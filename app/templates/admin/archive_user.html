@@ -24,11 +24,12 @@
                     </div>
                     
                     {% if user.has_managed_children() %}
+                    {% set active_children = user.managed_lists | selectattr('owner.is_active') | list %}
                     <div class="alert alert-danger">
                         <h6 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Cannot Archive!</h6>
-                        <p><strong>{{ user.name }}</strong> manages {{ user.managed_lists|length }} child profile(s):</p>
+                        <p><strong>{{ user.name }}</strong> manages {{ active_children|length }} child profile(s):</p>
                         <ul>
-                            {% for child_list in user.managed_lists %}
+                            {% for child_list in active_children %}
                             <li>{{ child_list.name }}</li>
                             {% endfor %}
                         </ul>

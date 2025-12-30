@@ -172,8 +172,11 @@ def my_list():
         db.session.add(user_list)
         db.session.commit()
     
-    # Get managed child lists
-    managed_lists = List.query.filter_by(managed_by_id=current_user.id).all()
+    # Get managed child lists (only active children)
+    managed_lists = List.query.join(User, List.owner_id == User.id).filter(
+        List.managed_by_id == current_user.id,
+        User.is_active == True
+    ).all()
     
     # Get active tab from query parameter
     active_tab = request.args.get('tab', 'active')
@@ -201,8 +204,11 @@ def manage_child_list(list_id):
         flash('You do not have permission to manage this list.', 'danger')
         return redirect(url_for('main.dashboard'))
     
-    # Get managed child lists for the sidebar
-    managed_lists = List.query.filter_by(managed_by_id=current_user.id).all()
+    # Get managed child lists for the sidebar (only active children)
+    managed_lists = List.query.join(User, List.owner_id == User.id).filter(
+        List.managed_by_id == current_user.id,
+        User.is_active == True
+    ).all()
     
     # Get active tab from query parameter
     active_tab = request.args.get('tab', 'active')
