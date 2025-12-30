@@ -50,7 +50,10 @@
                                 {% for child_list in user.managed_lists %}
                                 {% set child_user = child_list.owner %}
                                 <li class="mb-2">
-                                    <i class="bi bi-person"></i> {{ child_list.name }}
+                                    <i class="bi bi-person"></i> 
+                                    <a href="{{ url_for('main.manage_child_list', list_id=child_list.id) }}" class="text-decoration-none">
+                                        <strong>{{ child_list.name }}</strong>
+                                    </a>
                                     <span class="ms-2">
                                         <a href="{{ url_for('main.promote_child', child_id=child_user.id) }}" 
                                            class="btn btn-sm btn-success" title="Promote to full account">
