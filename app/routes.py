@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
 from app import db
 from app.models import User, List, Item, Claim
 from app.forms import (LoginForm, RegistrationForm, InviteUserForm, PasswordResetRequestForm,
@@ -11,6 +12,70 @@ from app.forms import (LoginForm, RegistrationForm, InviteUserForm, PasswordRese
 from app.email import send_invite_email, send_password_reset_email, send_item_deleted_notification
 
 main = Blueprint('main', __name__)
+
+
+# ==================== HELPER FUNCTIONS ====================
+
+def fetch_image_from_url(url):
+    """
+    Attempt to fetch a product image from a given URL.
+    Follows redirects (like Amazon sponsored links) to find the real product page.
+    Returns the image URL if found, None otherwise.
+    """
+    if not url or not url.strip():
+        return None
+    
+    try:
+        # Add http:// if missing
+        if not url.startswith(('http://', 'https://')):
+            url = 'https://' + url
+        
+        # Fetch the page - explicitly allow redirects for sponsored links
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
+        response.raise_for_status()
+        
+        # Use the final URL after any redirects (important for Amazon sponsored links)
+        final_url = response.url
+        
+        # Parse HTML
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Try Open Graph image (most reliable)
+        og_image = soup.find('meta', property='og:image')
+        if og_image and og_image.get('content'):
+            image_url = og_image.get('content')
+            return _normalize_image_url(image_url, final_url)
+        
+        # Try Twitter card image
+        twitter_image = soup.find('meta', attrs={'name': 'twitter:image'})
+        if twitter_image and twitter_image.get('content'):
+            image_url = twitter_image.get('content')
+            return _normalize_image_url(image_url, final_url)
+        
+        # Try meta itemprop image
+        itemprop_image = soup.find('meta', attrs={'itemprop': 'image'})
+        if itemprop_image and itemprop_image.get('content'):
+            image_url = itemprop_image.get('content')
+            return _normalize_image_url(image_url, final_url)
+        
+        return None
+        
+    except Exception:
+        # Silently fail - not critical if image fetch doesn't work
+        return None
+
+
+def _normalize_image_url(image_url, base_url):
+    """Convert relative URLs to absolute URLs"""
+    if image_url.startswith('//'):
+        return 'https:' + image_url
+    elif image_url.startswith('/'):
+        parsed = urlparse(base_url)
+        return f"{parsed.scheme}://{parsed.netloc}{image_url}"
+    return image_url
 
 
 # ==================== PUBLIC ROUTES ====================
@@ -285,12 +350,19 @@ def add_item(list_id):
         if form.allow_multiple.data:
             max_claims_value = form.max_claims.data if form.max_claims.data else 999
         
+        # Auto-fetch image if URL provided but no image_url
+        image_url = form.image_url.data
+        if form.url.data and not image_url:
+            fetched_image = fetch_image_from_url(form.url.data)
+            if fetched_image:
+                image_url = fetched_image
+        
         item = Item(
             list_id=list_id,
             title=form.title.data,
             description=form.description.data,
             url=form.url.data,
-            image_url=form.image_url.data,
+            image_url=image_url,
             price=form.price.data,
             max_claims=max_claims_value,
             position=max_position + 1,
@@ -325,10 +397,19 @@ def edit_item(item_id):
             form.max_claims.data = item.max_claims
     
     if form.validate_on_submit():
+        # Auto-fetch image if URL changed and no manual image_url provided
+        image_url = form.image_url.data
+        if form.url.data and not image_url:
+            # Check if URL changed or item never had an image
+            if form.url.data != item.url or not item.image_url:
+                fetched_image = fetch_image_from_url(form.url.data)
+                if fetched_image:
+                    image_url = fetched_image
+        
         item.title = form.title.data
         item.description = form.description.data
         item.url = form.url.data
-        item.image_url = form.image_url.data
+        item.image_url = image_url
         item.price = form.price.data
         
         # Update max_claims

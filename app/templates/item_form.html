@@ -50,17 +50,12 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 {{ form.url.label(class="form-label") }}
-                                <button type="button" class="btn btn-link btn-sm p-0 ms-1" data-bs-toggle="popover" data-bs-trigger="focus" tabindex="0" data-bs-content="Link to where this can be purchased (Amazon, store website, etc.)" title="URL Help">
+                                <button type="button" class="btn btn-link btn-sm p-0 ms-1" data-bs-toggle="popover" data-bs-trigger="focus" tabindex="0" data-bs-content="Link to where this can be purchased. We'll automatically try to fetch a product image when you save!" title="URL Help">
                                     <i class="bi bi-info-circle"></i>
                                 </button>
-                                <div class="input-group">
-                                    {{ form.url(class="form-control" + (" is-invalid" if form.url.errors else ""), placeholder="https://...", id="itemUrl") }}
-                                    <button type="button" class="btn btn-outline-secondary" id="fetchImageBtn" title="Fetch product image">
-                                        <i class="bi bi-image"></i> Fetch Image
-                                    </button>
-                                </div>
+                                {{ form.url(class="form-control" + (" is-invalid" if form.url.errors else ""), placeholder="https://...", id="itemUrl") }}
                                 {% if form.url.errors %}
-                                    <div class="invalid-feedback d-block">{{ form.url.errors[0] }}</div>
+                                    <div class="invalid-feedback">{{ form.url.errors[0] }}</div>
                                 {% endif %}
                             </div>
                             
@@ -76,13 +71,13 @@
                             </div>
                         </div>
                         
-                        <!-- Image Preview Section -->
+                        <!-- Optional Image URL Override -->
                         <div class="mb-3">
                             {{ form.image_url.label(class="form-label") }}
-                            <button type="button" class="btn btn-link btn-sm p-0 ms-1" data-bs-toggle="popover" data-bs-trigger="focus" tabindex="0" data-bs-content="Image will be auto-fetched from the URL, or you can enter a direct image link" title="Image Help">
+                            <button type="button" class="btn btn-link btn-sm p-0 ms-1" data-bs-toggle="popover" data-bs-trigger="focus" tabindex="0" data-bs-content="Optional: Image is auto-fetched from URL. You can override by pasting a direct image link here." title="Image Help">
                                 <i class="bi bi-info-circle"></i>
                             </button>
-                            {{ form.image_url(class="form-control" + (" is-invalid" if form.image_url.errors else ""), placeholder="https://...", id="imageUrl") }}
+                            {{ form.image_url(class="form-control" + (" is-invalid" if form.image_url.errors else ""), placeholder="Leave blank to auto-fetch from URL", id="imageUrl") }}
                             {% if form.image_url.errors %}
                                 <div class="invalid-feedback">{{ form.image_url.errors[0] }}</div>
                             {% endif %}
@@ -93,14 +88,11 @@
                                     <img id="previewImg" src="" class="card-img-top" alt="Item preview">
                                     <div class="card-body p-2">
                                         <small class="text-success">
-                                            <i class="bi bi-check-circle"></i> Image will appear on your wishlist
+                                            <i class="bi bi-check-circle"></i> Preview
                                         </small>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <!-- Fetch Status -->
-                            <div id="fetchStatus" class="mt-2"></div>
                         </div>
                         
                         <div class="card bg-light mb-3">
@@ -153,13 +145,10 @@ if (allowMultipleSwitch.checked) {
     maxClaimsGroup.style.display = 'block';
 }
 
-// Image fetching and preview functionality
-const fetchImageBtn = document.getElementById('fetchImageBtn');
-const itemUrlInput = document.getElementById('itemUrl');
+// Image preview functionality
 const imageUrlInput = document.getElementById('imageUrl');
 const imagePreview = document.getElementById('imagePreview');
 const previewImg = document.getElementById('previewImg');
-const fetchStatus = document.getElementById('fetchStatus');
 
 // Update preview when image URL changes
 imageUrlInput.addEventListener('input', function() {
@@ -179,60 +168,10 @@ function updateImagePreview(url) {
         // Handle image load error
         previewImg.onerror = function() {
             imagePreview.style.display = 'none';
-            showStatus('Unable to load image preview', 'warning');
         };
     } else {
         imagePreview.style.display = 'none';
     }
 }
-
-function showStatus(message, type) {
-    const alertClass = type === 'success' ? 'alert-success' : 
-                      type === 'error' ? 'alert-danger' : 'alert-warning';
-    fetchStatus.innerHTML = `<div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>`;
-}
-
-// Fetch image from URL
-fetchImageBtn.addEventListener('click', async function() {
-    const url = itemUrlInput.value.trim();
-    
-    if (!url) {
-        showStatus('Please enter a URL first', 'warning');
-        return;
-    }
-    
-    // Show loading state
-    fetchImageBtn.disabled = true;
-    fetchImageBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Fetching...';
-    fetchStatus.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div> Searching for product image...';
-    
-    try {
-        const response = await fetch('{{ url_for("main.fetch_product_image") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ url: url })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.image_url) {
-            imageUrlInput.value = data.image_url;
-            updateImagePreview(data.image_url);
-            showStatus('✓ Image found and loaded!', 'success');
-        } else {
-            showStatus(data.error || 'No image found on this page. You can enter an image URL manually.', 'warning');
-        }
-    } catch (error) {
-        showStatus('Error fetching image. Please check the URL and try again.', 'error');
-    } finally {
-        fetchImageBtn.disabled = false;
-        fetchImageBtn.innerHTML = '<i class="bi bi-image"></i> Fetch Image';
-    }
-});
 </script>
 {% endblock %}
