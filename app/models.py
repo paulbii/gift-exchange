@@ -132,6 +132,7 @@ class Item(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     url = db.Column(db.String(2000))  # Increased for long URLs with tracking parameters
+    image_url = db.Column(db.String(2000))  # Product image URL
     price = db.Column(db.Numeric(10, 2))  # Store as decimal for currency
     notes = db.Column(db.Text)  # Only visible to gift-givers
     max_claims = db.Column(db.Integer, default=1, nullable=False)  # 1 = single claim, higher = multiple allowed

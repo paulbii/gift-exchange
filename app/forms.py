@@ -77,6 +77,7 @@ class ItemForm(FlaskForm):
     title = StringField('Item Title', validators=[DataRequired()])
     description = TextAreaField('Description', validators=[Optional()])
     url = StringField('Link/URL', validators=[Optional(), URL()])
+    image_url = StringField('Image URL', validators=[Optional(), URL()])
     price = DecimalField('Price', validators=[Optional()], places=2)
     allow_multiple = BooleanField('Allow multiple people to buy this')
     max_claims = IntegerField('How many?', validators=[Optional(), NumberRange(min=1)], default=1)

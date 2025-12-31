@@ -1,6 +1,8 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from datetime import datetime, timedelta
+import requests
+from bs4 import BeautifulSoup
 from app import db
 from app.models import User, List, Item, Claim
 from app.forms import (LoginForm, RegistrationForm, InviteUserForm, PasswordResetRequestForm,
@@ -288,6 +290,7 @@ def add_item(list_id):
             title=form.title.data,
             description=form.description.data,
             url=form.url.data,
+            image_url=form.image_url.data,
             price=form.price.data,
             max_claims=max_claims_value,
             position=max_position + 1,
@@ -325,6 +328,7 @@ def edit_item(item_id):
         item.title = form.title.data
         item.description = form.description.data
         item.url = form.url.data
+        item.image_url = form.image_url.data
         item.price = form.price.data
         
         # Update max_claims
@@ -367,6 +371,78 @@ def delete_item(item_id):
     
     flash('Item deleted.', 'success')
     return redirect(url_for('main.my_list'))
+
+
+@main.route('/fetch-product-image', methods=['POST'])
+@login_required
+def fetch_product_image():
+    """Fetch product image from URL"""
+    try:
+        data = request.get_json()
+        url = data.get('url', '').strip()
+        
+        if not url:
+            return jsonify({'error': 'No URL provided'}), 400
+        
+        # Add http:// if missing
+        if not url.startswith(('http://', 'https://')):
+            url = 'https://' + url
+        
+        # Fetch the page
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        # Parse HTML
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Try Open Graph image (most reliable)
+        og_image = soup.find('meta', property='og:image')
+        if og_image and og_image.get('content'):
+            image_url = og_image.get('content')
+            # Make absolute URL if needed
+            if image_url.startswith('//'):
+                image_url = 'https:' + image_url
+            elif image_url.startswith('/'):
+                from urllib.parse import urlparse
+                parsed = urlparse(url)
+                image_url = f"{parsed.scheme}://{parsed.netloc}{image_url}"
+            return jsonify({'image_url': image_url, 'success': True})
+        
+        # Try Twitter card image
+        twitter_image = soup.find('meta', attrs={'name': 'twitter:image'})
+        if twitter_image and twitter_image.get('content'):
+            image_url = twitter_image.get('content')
+            if image_url.startswith('//'):
+                image_url = 'https:' + image_url
+            elif image_url.startswith('/'):
+                from urllib.parse import urlparse
+                parsed = urlparse(url)
+                image_url = f"{parsed.scheme}://{parsed.netloc}{image_url}"
+            return jsonify({'image_url': image_url, 'success': True})
+        
+        # Try meta itemprop image
+        itemprop_image = soup.find('meta', attrs={'itemprop': 'image'})
+        if itemprop_image and itemprop_image.get('content'):
+            image_url = itemprop_image.get('content')
+            if image_url.startswith('//'):
+                image_url = 'https:' + image_url
+            elif image_url.startswith('/'):
+                from urllib.parse import urlparse
+                parsed = urlparse(url)
+                image_url = f"{parsed.scheme}://{parsed.netloc}{image_url}"
+            return jsonify({'image_url': image_url, 'success': True})
+        
+        return jsonify({'error': 'No image found on this page'}), 404
+        
+    except requests.exceptions.Timeout:
+        return jsonify({'error': 'Request timed out. The website took too long to respond.'}), 408
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': f'Could not fetch the page: {str(e)}'}), 400
+    except Exception as e:
+        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
 
 @main.route('/item/mark-received/<int:item_id>', methods=['POST'])
