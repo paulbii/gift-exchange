@@ -1,149 +1,553 @@
 {% extends "base.html" %}
 
-{% block title %}{{ list.owner.name }}'s List{% endblock %}
+{% block title %}{{ list.owner.name }}'s Wishlist{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ========== Wishlist Grid ========== */
+    .wishlist-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+    }
+    
+    /* ========== Wish Card ========== */
+    .wish-card {
+        background: var(--color-card);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        animation: fadeInUp 0.4s ease both;
+    }
+    
+    .wish-card:nth-child(1) { animation-delay: 0.05s; }
+    .wish-card:nth-child(2) { animation-delay: 0.1s; }
+    .wish-card:nth-child(3) { animation-delay: 0.15s; }
+    .wish-card:nth-child(4) { animation-delay: 0.2s; }
+    .wish-card:nth-child(5) { animation-delay: 0.25s; }
+    .wish-card:nth-child(6) { animation-delay: 0.3s; }
+    
+    .wish-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-hover);
+    }
+    
+    .wish-card.claimed {
+        opacity: 0.75;
+    }
+    
+    /* ========== Card Image ========== */
+    .wish-card-image-container {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1;
+        background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-alt) 100%);
+        overflow: hidden;
+    }
+    
+    .wish-card-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+    
+    .wish-card:hover .wish-card-image {
+        transform: scale(1.05);
+    }
+    
+    .wish-card-no-image {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-text-muted);
+    }
+    
+    .wish-card-no-image i {
+        font-size: 64px;
+        opacity: 0.3;
+        margin-bottom: 8px;
+    }
+    
+    .wish-card-no-image span {
+        font-size: 0.875rem;
+        opacity: 0.5;
+    }
+    
+    /* ========== Priority Badge ========== */
+    .priority-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: var(--color-primary);
+        color: white;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        box-shadow: 0 2px 8px rgba(155, 35, 53, 0.3);
+        z-index: 10;
+    }
+    
+    .priority-badge.top-wish {
+        background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
+        color: #2D2926;
+    }
+    
+    /* ========== Status Badge ========== */
+    .status-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .status-badge.available {
+        background: var(--color-success);
+        color: white;
+        box-shadow: 0 2px 8px rgba(74, 124, 89, 0.3);
+    }
+    
+    .status-badge.claimed {
+        background: var(--color-warning);
+        color: white;
+        box-shadow: 0 2px 8px rgba(201, 162, 39, 0.3);
+    }
+    
+    .status-badge.my-claim {
+        background: var(--color-primary);
+        color: white;
+        box-shadow: 0 2px 8px rgba(155, 35, 53, 0.3);
+    }
+    
+    /* ========== Card Body ========== */
+    .wish-card-body {
+        padding: 20px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .wish-card-title {
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--color-text);
+        margin-bottom: 8px;
+        line-height: 1.3;
+    }
+    
+    .wish-card-description {
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+        line-height: 1.5;
+        flex-grow: 1;
+    }
+    
+    .wish-card-price {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--color-primary);
+        margin-bottom: 16px;
+    }
+    
+    .wish-card-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--color-text-muted);
+        font-size: 0.875rem;
+        transition: color 0.2s ease;
+    }
+    
+    .wish-card-link:hover {
+        color: var(--color-primary);
+    }
+    
+    /* ========== Card Actions ========== */
+    .wish-card-actions {
+        padding: 16px 20px;
+        background: var(--color-bg);
+        border-top: 1px solid var(--color-border);
+    }
+    
+    .wish-card-actions .btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    
+    .btn-claim {
+        background: var(--color-success);
+        color: white;
+        border: none;
+    }
+    
+    .btn-claim:hover {
+        background: #3D6B4A;
+        transform: scale(1.02);
+    }
+    
+    .btn-claim:active {
+        transform: scale(0.98);
+    }
+    
+    .btn-unclaim {
+        background: var(--color-warning);
+        color: white;
+        border: none;
+    }
+    
+    .btn-unclaim:hover {
+        background: #B8960C;
+    }
+    
+    .btn-unavailable {
+        background: var(--color-bg-alt);
+        color: var(--color-text-muted);
+        border: 2px solid var(--color-border);
+        cursor: not-allowed;
+    }
+    
+    /* ========== Delivery Email Banner ========== */
+    .delivery-banner {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 24px;
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        border-radius: var(--radius-lg);
+        margin-bottom: 32px;
+        color: white;
+        box-shadow: 0 4px 20px rgba(155, 35, 53, 0.25);
+    }
+    
+    .delivery-banner i {
+        font-size: 2rem;
+        color: var(--color-accent-light);
+    }
+    
+    .delivery-banner-content h3 {
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        margin-bottom: 4px;
+        color: white;
+    }
+    
+    .delivery-banner-content p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.95rem;
+    }
+    
+    .delivery-banner-content a {
+        color: var(--color-accent-light);
+        font-weight: 600;
+    }
+    
+    /* ========== Filter Toggle ========== */
+    .filter-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    
+    .filter-toggle {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 20px;
+        background: var(--color-card);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .filter-toggle label {
+        font-weight: 500;
+        color: var(--color-text);
+        margin: 0;
+        cursor: pointer;
+    }
+    
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+    
+    .item-count {
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+    }
+    
+    /* ========== Empty State ========== */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: var(--color-card);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .empty-state-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 24px;
+        background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-alt) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .empty-state-icon i {
+        font-size: 48px;
+        color: var(--color-accent);
+    }
+    
+    .empty-state h3 {
+        font-family: var(--font-display);
+        color: var(--color-text);
+        margin-bottom: 8px;
+    }
+    
+    .empty-state p {
+        color: var(--color-text-muted);
+        margin-bottom: 24px;
+    }
+    
+    /* ========== Page Header ========== */
+    .page-header {
+        margin-bottom: 24px;
+    }
+    
+    .page-header h1 {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .page-header h1 i {
+        color: var(--color-primary);
+    }
+    
+    /* ========== Claim Success Animation ========== */
+    @keyframes claimPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .claim-success {
+        animation: claimPulse 0.5s ease;
+    }
+    
+    /* ========== Responsive ========== */
+    @media (max-width: 768px) {
+        .wishlist-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        
+        .delivery-banner {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .filter-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .filter-toggle {
+            justify-content: center;
+        }
+        
+        .item-count {
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="row">
-        <div class="col-12">
-            <h1 class="mb-2">
-                <i class="bi bi-person"></i> {{ list.name }}
-            </h1>
-            
-            <div class="alert alert-info mb-4">
-                <i class="bi bi-envelope"></i>
-                <strong>Send electronic gifts to:</strong> {{ list.owner.get_delivery_email() }}
-            </div>
-            
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="filterSwitch" 
-                           {% if show_available_only %}checked{% endif %}
-                           onchange="toggleFilter(this)">
-                    <label class="form-check-label" for="filterSwitch">
-                        Show only available items
-                    </label>
-                </div>
-                
-                {% if show_available_only and shown_items < total_items %}
-                <small class="text-muted">
-                    Showing {{ shown_items }} of {{ total_items }} items
-                </small>
-                {% endif %}
-            </div>
-            
-            {% if items %}
-            <div class="list-group">
-                {% for item in items %}
-                <div class="list-group-item">
-                    <div class="d-flex w-100 justify-content-between align-items-start">
-                        {% if item.image_url %}
-                        <div class="me-3" style="flex-shrink: 0;">
-                            <img src="{{ item.image_url }}" alt="{{ item.title }}" 
-                                 style="width: 200px; height: 200px; object-fit: cover; border-radius: 8px;"
-                                 onerror="this.style.display='none'">
-                        </div>
-                        {% endif %}
-                        
-                        <div class="flex-grow-1">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="mb-0">
-                                    <span class="badge bg-secondary me-2">#{{ loop.index }}</span>
-                                    {{ item.title }}
-                                </h5>
-                                
-                                <!-- Claim Status Badge -->
-                                {% if item.max_claims == 1 %}
-                                    {% if item.claim_count() > 0 %}
-                                    <span class="badge bg-warning">Claimed</span>
-                                    {% else %}
-                                    <span class="badge bg-success">Available</span>
-                                    {% endif %}
-                                {% else %}
-                                    {% if item.is_available() %}
-                                    <span class="badge bg-success">
-                                        {{ item.claim_count() }} of 
-                                        {% if item.max_claims >= 999 %}∞{% else %}{{ item.max_claims }}{% endif %}
-                                        claimed
-                                    </span>
-                                    {% else %}
-                                    <span class="badge bg-warning">Fully Claimed</span>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                            
-                            {% if item.description %}
-                            <p class="mb-2">{{ item.description }}</p>
-                            {% endif %}
-                            
-                            <div class="small text-muted mb-2">
-                                {% if item.price %}
-                                <span class="me-3">
-                                    <i class="bi bi-currency-dollar"></i> ${{ "%.2f"|format(item.price) }}
-                                </span>
-                                {% endif %}
-                                
-                                {% if item.url %}
-                                <span class="me-3">
-                                    <i class="bi bi-link-45deg"></i>
-                                    <a href="{{ item.url }}" target="_blank" rel="noopener">View Link</a>
-                                </span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <!-- Claim Button -->
-                        <div class="ms-3">
-                            {% if item.is_claimed_by(current_user) %}
-                            <form method="POST" action="{{ url_for('main.unclaim_item', item_id=item.id) }}">
-                                <button type="submit" class="btn btn-warning">
-                                    <i class="bi bi-x-circle"></i> Unclaim
-                                </button>
-                            </form>
-                            {% elif item.is_available() %}
-                            <form method="POST" action="{{ url_for('main.claim_item', item_id=item.id) }}">
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-check-circle"></i> Claim
-                                </button>
-                            </form>
-                            {% else %}
-                            <button class="btn btn-secondary" disabled>
-                                <i class="bi bi-dash-circle"></i> Unavailable
-                            </button>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="alert alert-info">
-                {% if show_available_only %}
-                <i class="bi bi-info-circle"></i> No available items. All items have been claimed!
-                {% else %}
-                <i class="bi bi-info-circle"></i> This list is empty.
-                {% endif %}
-            </div>
-            {% endif %}
-            
-            <div class="mt-4">
-                <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Back to Dashboard
-                </a>
-            </div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-gift"></i> {{ list.name }}
+        </h1>
+    </div>
+    
+    <!-- Delivery Email Banner -->
+    <div class="delivery-banner">
+        <i class="bi bi-envelope-heart"></i>
+        <div class="delivery-banner-content">
+            <h3>Send Digital Gifts Here</h3>
+            <p>E-gift cards, online orders, and digital gifts can be sent to: 
+               <a href="mailto:{{ list.owner.get_delivery_email() }}">{{ list.owner.get_delivery_email() }}</a>
+            </p>
         </div>
     </div>
+    
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-toggle">
+            <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="filterSwitch" 
+                       {% if show_available_only %}checked{% endif %}
+                       onchange="toggleFilter(this)">
+                <label class="form-check-label" for="filterSwitch">
+                    Show only available items
+                </label>
+            </div>
+        </div>
+        
+        {% if show_available_only and shown_items < total_items %}
+        <div class="item-count">
+            <i class="bi bi-funnel"></i> Showing {{ shown_items }} of {{ total_items }} items
+        </div>
+        {% else %}
+        <div class="item-count">
+            <i class="bi bi-list-ul"></i> {{ items|length }} items
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if items %}
+    <div class="wishlist-grid">
+        {% for item in items %}
+        <div class="wish-card {% if not item.is_available() and not item.is_claimed_by(current_user) %}claimed{% endif %}">
+            <!-- Priority Badge -->
+            <span class="priority-badge {% if loop.index == 1 %}top-wish{% endif %}">
+                {% if loop.index == 1 %}
+                    <i class="bi bi-star-fill"></i> Most Wanted
+                {% else %}
+                    #{{ loop.index }}
+                {% endif %}
+            </span>
+            
+            <!-- Status Badge -->
+            {% if item.is_claimed_by(current_user) %}
+            <span class="status-badge my-claim">
+                <i class="bi bi-heart-fill"></i> You're Getting This
+            </span>
+            {% elif item.max_claims == 1 %}
+                {% if item.claim_count() > 0 %}
+                <span class="status-badge claimed">
+                    <i class="bi bi-lock"></i> Claimed
+                </span>
+                {% else %}
+                <span class="status-badge available">
+                    <i class="bi bi-check"></i> Available
+                </span>
+                {% endif %}
+            {% else %}
+                {% if item.is_available() %}
+                <span class="status-badge available">
+                    <i class="bi bi-check"></i> {{ item.claim_count() }}/{% if item.max_claims >= 999 %}∞{% else %}{{ item.max_claims }}{% endif %}
+                </span>
+                {% else %}
+                <span class="status-badge claimed">
+                    <i class="bi bi-lock"></i> Full
+                </span>
+                {% endif %}
+            {% endif %}
+            
+            <!-- Image -->
+            <div class="wish-card-image-container">
+                {% if item.image_url %}
+                <img src="{{ item.image_url }}" alt="{{ item.title }}" class="wish-card-image"
+                     onerror="this.parentElement.innerHTML='<div class=\'wish-card-no-image\'><i class=\'bi bi-gift\'></i><span>No image</span></div>'">
+                {% else %}
+                <div class="wish-card-no-image">
+                    <i class="bi bi-gift"></i>
+                    <span>No image</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Body -->
+            <div class="wish-card-body">
+                <h3 class="wish-card-title">{{ item.title }}</h3>
+                
+                {% if item.description %}
+                <p class="wish-card-description">{{ item.description }}</p>
+                {% endif %}
+                
+                {% if item.price %}
+                <div class="wish-card-price">${{ "%.2f"|format(item.price) }}</div>
+                {% endif %}
+                
+                {% if item.url %}
+                <a href="{{ item.url }}" target="_blank" class="wish-card-link">
+                    <i class="bi bi-box-arrow-up-right"></i> View Product
+                </a>
+                {% endif %}
+            </div>
+            
+            <!-- Actions -->
+            <div class="wish-card-actions">
+                {% if item.is_claimed_by(current_user) %}
+                <form method="POST" action="{{ url_for('main.unclaim_item', item_id=item.id) }}">
+                    <button type="submit" class="btn btn-unclaim">
+                        <i class="bi bi-x-circle"></i> Changed My Mind
+                    </button>
+                </form>
+                {% elif item.is_available() %}
+                <form method="POST" action="{{ url_for('main.claim_item', item_id=item.id) }}">
+                    <button type="submit" class="btn btn-claim">
+                        <i class="bi bi-gift"></i> I'll Get This!
+                    </button>
+                </form>
+                {% else %}
+                <button class="btn btn-unavailable" disabled>
+                    <i class="bi bi-lock"></i> Already Claimed
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="bi bi-inbox"></i>
+        </div>
+        <h3>No items to show</h3>
+        <p>{% if show_available_only %}All items have been claimed! Try turning off the filter to see everything.{% else %}This wishlist is empty.{% endif %}</p>
+    </div>
+    {% endif %}
 </div>
 
 <script>
 function toggleFilter(checkbox) {
-    const url = new URL(window.location);
+    const currentUrl = new URL(window.location.href);
     if (checkbox.checked) {
-        url.searchParams.set('available', 'true');
+        currentUrl.searchParams.set('available', 'true');
     } else {
-        url.searchParams.delete('available');
+        currentUrl.searchParams.delete('available');
     }
-    window.location = url;
+    window.location.href = currentUrl.toString();
 }
 </script>
 {% endblock %}

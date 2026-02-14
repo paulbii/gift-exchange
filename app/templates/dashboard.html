@@ -2,75 +2,399 @@
 
 {% block title %}Dashboard{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ========== Welcome Section ========== */
+    .welcome-section {
+        margin-bottom: 40px;
+    }
+    
+    .welcome-card {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        border-radius: var(--radius-xl);
+        padding: 40px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(155, 35, 53, 0.3);
+    }
+    
+    .welcome-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .welcome-card::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(212, 175, 55, 0.2) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .welcome-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .welcome-greeting {
+        font-family: var(--font-display);
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    
+    .welcome-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 24px;
+    }
+    
+    .welcome-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .welcome-actions .btn {
+        background: white;
+        color: var(--color-primary);
+        border: none;
+        font-weight: 600;
+        padding: 12px 24px;
+    }
+    
+    .welcome-actions .btn:hover {
+        background: var(--color-accent-light);
+        color: var(--color-primary-dark);
+    }
+    
+    .welcome-actions .btn-outline {
+        background: transparent;
+        color: white;
+        border: 2px solid rgba(255,255,255,0.5);
+    }
+    
+    .welcome-actions .btn-outline:hover {
+        background: rgba(255,255,255,0.1);
+        border-color: white;
+        color: white;
+    }
+    
+    /* ========== Section Header ========== */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+    
+    .section-title {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        color: var(--color-text);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0;
+    }
+    
+    .section-title i {
+        color: var(--color-primary);
+    }
+    
+    /* ========== Family Grid ========== */
+    .family-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+    
+    /* ========== Family Card ========== */
+    .family-card {
+        background: var(--color-card);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.4s ease both;
+    }
+    
+    .family-card:nth-child(1) { animation-delay: 0.05s; }
+    .family-card:nth-child(2) { animation-delay: 0.1s; }
+    .family-card:nth-child(3) { animation-delay: 0.15s; }
+    .family-card:nth-child(4) { animation-delay: 0.2s; }
+    .family-card:nth-child(5) { animation-delay: 0.25s; }
+    .family-card:nth-child(6) { animation-delay: 0.3s; }
+    
+    .family-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-hover);
+    }
+    
+    .family-card-header {
+        padding: 24px 24px 16px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    .family-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 600;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    /* Generate different colors for avatars */
+    .family-card:nth-child(6n+1) .family-avatar { background: linear-gradient(135deg, #9B2335 0%, #C84B5B 100%); }
+    .family-card:nth-child(6n+2) .family-avatar { background: linear-gradient(135deg, #4A7C59 0%, #6B9F78 100%); }
+    .family-card:nth-child(6n+3) .family-avatar { background: linear-gradient(135deg, #2E5090 0%, #4A7CC0 100%); }
+    .family-card:nth-child(6n+4) .family-avatar { background: linear-gradient(135deg, #8B5A2B 0%, #B07D3D 100%); }
+    .family-card:nth-child(6n+5) .family-avatar { background: linear-gradient(135deg, #6B4984 0%, #8E6BA8 100%); }
+    .family-card:nth-child(6n+6) .family-avatar { background: linear-gradient(135deg, #C9A227 0%, #E8C547 100%); }
+    
+    .family-info h3 {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        color: var(--color-text);
+        margin-bottom: 4px;
+    }
+    
+    .family-info .item-count {
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .family-card-body {
+        padding: 0 24px 24px;
+    }
+    
+    .family-card .btn {
+        width: 100%;
+        padding: 12px;
+        font-weight: 600;
+    }
+    
+    .family-card .btn-view {
+        background: var(--color-bg-alt);
+        color: var(--color-text);
+        border: 2px solid var(--color-border);
+    }
+    
+    .family-card .btn-view:hover {
+        background: var(--color-primary);
+        color: white;
+        border-color: var(--color-primary);
+    }
+    
+    .family-card .btn-manage {
+        background: var(--color-primary);
+        color: white;
+        border: none;
+    }
+    
+    .family-card .btn-manage:hover {
+        background: var(--color-primary-light);
+    }
+    
+    /* ========== My List Indicator ========== */
+    .my-list-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: var(--color-accent);
+        color: #2D2926;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .family-card.is-mine {
+        position: relative;
+        border: 2px solid var(--color-accent);
+    }
+    
+    /* ========== Empty State ========== */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: var(--color-card);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .empty-state-icon {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 24px;
+        background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-alt) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .empty-state-icon i {
+        font-size: 40px;
+        color: var(--color-primary);
+    }
+    
+    .empty-state h3 {
+        font-family: var(--font-display);
+        margin-bottom: 8px;
+    }
+    
+    .empty-state p {
+        color: var(--color-text-muted);
+        margin-bottom: 24px;
+    }
+    
+    /* ========== Responsive ========== */
+    @media (max-width: 768px) {
+        .welcome-card {
+            padding: 28px 24px;
+        }
+        
+        .welcome-greeting {
+            font-size: 1.5rem;
+        }
+        
+        .welcome-actions {
+            flex-direction: column;
+        }
+        
+        .welcome-actions .btn {
+            width: 100%;
+        }
+        
+        .family-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
-    <div class="row">
-        <div class="col-12">
-            <h1 class="mb-4">
-                <i class="bi bi-house-door"></i> Dashboard
-            </h1>
-            
-            {% if current_user.is_admin %}
-            <div class="mb-4">
-                <a href="{{ url_for('main.invite_user') }}" class="btn btn-success">
-                    <i class="bi bi-person-plus"></i> Invite Family Member
-                </a>
-            </div>
-            {% endif %}
-            
-            <h3 class="mb-3">Family Members</h3>
-            
-            {% if not lists %}
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle"></i> No family members yet. 
-                {% if current_user.is_admin %}
-                Start by inviting your family!
-                {% else %}
-                Ask the administrator to invite more people.
-                {% endif %}
-            </div>
-            {% else %}
-            <div class="row">
-                {% for list in lists %}
-                <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <i class="bi bi-person"></i> {{ list.owner.name }}
-                            </h5>
-                            
-                            {% if list.items %}
-                            <p class="card-text text-muted">
-                                {{ list.items|length }} item{{ 's' if list.items|length != 1 else '' }}
-                            </p>
-                            {% else %}
-                            <p class="card-text text-muted">
-                                <em>No items yet</em>
-                            </p>
-                            {% endif %}
-                            
-                            {% if current_user.can_manage_list(list) %}
-                                {% if list.owner_id == current_user.id %}
-                                <a href="{{ url_for('main.my_list') }}" class="btn btn-primary btn-sm">
-                                    <i class="bi bi-pencil"></i> Manage List
-                                </a>
-                                {% else %}
-                                <a href="{{ url_for('main.manage_child_list', list_id=list.id) }}" class="btn btn-primary btn-sm">
-                                    <i class="bi bi-pencil"></i> Manage List
-                                </a>
-                                {% endif %}
-                            {% else %}
-                            <a href="{{ url_for('main.view_list', list_id=list.id) }}" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-eye"></i> View List
-                            </a>
-                            {% endif %}
-                        </div>
-                    </div>
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <div class="welcome-card">
+            <div class="welcome-content">
+                <h1 class="welcome-greeting">
+                    <i class="bi bi-stars"></i> Welcome back, {{ current_user.name.split()[0] }}!
+                </h1>
+                <p class="welcome-subtitle">
+                    Browse your family's wishlists and find the perfect gifts.
+                </p>
+                <div class="welcome-actions">
+                    <a href="{{ url_for('main.my_list') }}" class="btn">
+                        <i class="bi bi-list-heart"></i> View My Wishlist
+                    </a>
+                    {% if current_user.is_admin %}
+                    <a href="{{ url_for('main.invite_user') }}" class="btn btn-outline">
+                        <i class="bi bi-person-plus"></i> Invite Family
+                    </a>
+                    {% endif %}
                 </div>
-                {% endfor %}
             </div>
-            {% endif %}
         </div>
     </div>
+    
+    <!-- Family Members Section -->
+    <div class="section-header">
+        <h2 class="section-title">
+            <i class="bi bi-people-fill"></i> Family Wishlists
+        </h2>
+        {% if lists %}
+        <span class="text-muted">{{ lists|length }} member{{ 's' if lists|length != 1 else '' }}</span>
+        {% endif %}
+    </div>
+    
+    {% if not lists %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="bi bi-people"></i>
+        </div>
+        <h3>No family members yet</h3>
+        <p>
+            {% if current_user.is_admin %}
+            Start by inviting your family to join!
+            {% else %}
+            Ask the administrator to invite more people.
+            {% endif %}
+        </p>
+        {% if current_user.is_admin %}
+        <a href="{{ url_for('main.invite_user') }}" class="btn btn-primary btn-lg">
+            <i class="bi bi-person-plus"></i> Invite Family Member
+        </a>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="family-grid">
+        {% for list in lists %}
+        <div class="family-card {% if current_user.can_manage_list(list) and list.owner_id == current_user.id %}is-mine{% endif %}">
+            {% if list.owner_id == current_user.id %}
+            <span class="my-list-badge">My List</span>
+            {% endif %}
+            
+            <div class="family-card-header">
+                <div class="family-avatar">
+                    {{ list.owner.name[0].upper() }}
+                </div>
+                <div class="family-info">
+                    <h3>{{ list.owner.name }}</h3>
+                    <div class="item-count">
+                        {% if list.items %}
+                        <i class="bi bi-gift"></i> {{ list.items|length }} item{{ 's' if list.items|length != 1 else '' }}
+                        {% else %}
+                        <i class="bi bi-inbox"></i> No items yet
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="family-card-body">
+                {% if current_user.can_manage_list(list) %}
+                    {% if list.owner_id == current_user.id %}
+                    <a href="{{ url_for('main.my_list') }}" class="btn btn-manage">
+                        <i class="bi bi-pencil"></i> Manage My List
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('main.manage_child_list', list_id=list.id) }}" class="btn btn-manage">
+                        <i class="bi bi-pencil"></i> Manage List
+                    </a>
+                    {% endif %}
+                {% else %}
+                <a href="{{ url_for('main.view_list', list_id=list.id) }}" class="btn btn-view">
+                    <i class="bi bi-gift"></i> Shop Their Wishlist
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

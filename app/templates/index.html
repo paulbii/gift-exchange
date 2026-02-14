@@ -2,45 +2,352 @@
 
 {% block title %}Welcome{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ========== Hero Section ========== */
+    .hero {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        padding: 60px 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero::before {
+        content: '';
+        position: absolute;
+        top: -20%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(155, 35, 53, 0.08) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .hero::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -15%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .hero-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 32px;
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 12px 40px rgba(155, 35, 53, 0.3);
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .hero-icon i {
+        font-size: 3rem;
+        color: var(--color-accent-light);
+    }
+    
+    .hero-title {
+        font-family: var(--font-display);
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: var(--color-text);
+        margin-bottom: 16px;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+    
+    .hero-title span {
+        color: var(--color-primary);
+    }
+    
+    .hero-subtitle {
+        font-size: 1.35rem;
+        color: var(--color-text-muted);
+        margin-bottom: 40px;
+        line-height: 1.6;
+    }
+    
+    .hero-cta {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    
+    .hero-cta .btn {
+        padding: 16px 40px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: var(--radius-md);
+    }
+    
+    .btn-hero-primary {
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        box-shadow: 0 8px 24px rgba(155, 35, 53, 0.3);
+    }
+    
+    .btn-hero-primary:hover {
+        background: var(--color-primary-light);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(155, 35, 53, 0.35);
+        color: white;
+    }
+    
+    .btn-hero-secondary {
+        background: transparent;
+        color: var(--color-text);
+        border: 2px solid var(--color-border);
+    }
+    
+    .btn-hero-secondary:hover {
+        background: var(--color-bg-alt);
+        border-color: var(--color-text-muted);
+        color: var(--color-text);
+    }
+    
+    /* ========== Features Section ========== */
+    .features {
+        padding: 80px 0;
+        background: var(--color-card);
+        border-top: 1px solid var(--color-border);
+        position: relative;
+    }
+    
+    .features-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+    
+    .features-header h2 {
+        font-family: var(--font-display);
+        font-size: 2.25rem;
+        color: var(--color-text);
+        margin-bottom: 16px;
+    }
+    
+    .features-header p {
+        font-size: 1.1rem;
+        color: var(--color-text-muted);
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 32px;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .feature-card {
+        text-align: center;
+        padding: 40px 32px;
+        background: var(--color-bg);
+        border-radius: var(--radius-lg);
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.5s ease both;
+    }
+    
+    .feature-card:nth-child(1) { animation-delay: 0.1s; }
+    .feature-card:nth-child(2) { animation-delay: 0.2s; }
+    .feature-card:nth-child(3) { animation-delay: 0.3s; }
+    
+    .feature-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+    
+    .feature-card:nth-child(1) .feature-icon {
+        background: linear-gradient(135deg, rgba(155, 35, 53, 0.1) 0%, rgba(155, 35, 53, 0.2) 100%);
+        color: var(--color-primary);
+    }
+    
+    .feature-card:nth-child(2) .feature-icon {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0.2) 100%);
+        color: var(--color-accent-dark);
+    }
+    
+    .feature-card:nth-child(3) .feature-icon {
+        background: linear-gradient(135deg, rgba(74, 124, 89, 0.1) 0%, rgba(74, 124, 89, 0.2) 100%);
+        color: var(--color-success);
+    }
+    
+    .feature-card h3 {
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        color: var(--color-text);
+        margin-bottom: 12px;
+    }
+    
+    .feature-card p {
+        color: var(--color-text-muted);
+        font-size: 1rem;
+        line-height: 1.6;
+        margin: 0;
+    }
+    
+    /* ========== Decorative Elements ========== */
+    .decoration {
+        position: absolute;
+        opacity: 0.5;
+        color: var(--color-border);
+        font-size: 2rem;
+    }
+    
+    .decoration-1 { top: 10%; left: 5%; }
+    .decoration-2 { top: 20%; right: 8%; }
+    .decoration-3 { bottom: 15%; left: 10%; }
+    .decoration-4 { bottom: 25%; right: 5%; }
+    
+    /* ========== Responsive ========== */
+    @media (max-width: 768px) {
+        .hero {
+            min-height: auto;
+            padding: 40px 0;
+        }
+        
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+        
+        .hero-cta {
+            flex-direction: column;
+            padding: 0 20px;
+        }
+        
+        .hero-cta .btn {
+            width: 100%;
+        }
+        
+        .hero-icon {
+            width: 100px;
+            height: 100px;
+        }
+        
+        .hero-icon i {
+            font-size: 2.5rem;
+        }
+        
+        .features {
+            padding: 60px 0;
+        }
+        
+        .features-header h2 {
+            font-size: 1.75rem;
+        }
+        
+        .feature-card {
+            padding: 32px 24px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="text-center my-5">
-                <h1 class="display-4 mb-4">
-                    <i class="bi bi-gift-fill text-primary"></i>
-                    Power Family Wishlist
-                </h1>
-                <p class="lead">Give gifts people actually want - no more guessing!</p>
-                
-                <div class="d-grid gap-2 col-md-6 mx-auto mt-4">
-                    <a href="{{ url_for('main.login') }}" class="btn btn-primary btn-lg">
-                        <i class="bi bi-box-arrow-in-right"></i> Log In
-                    </a>
-                </div>
-                
-                <div class="mt-5">
-                    <h4>How it works:</h4>
-                    <div class="row mt-4">
-                        <div class="col-md-4 mb-3">
-                            <i class="bi bi-list-ul fs-1 text-primary"></i>
-                            <h5 class="mt-2">Create Your Wishlist</h5>
-                            <p>Add items you'd actually like to receive with links, prices, and notes</p>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <i class="bi bi-gift fs-1 text-primary"></i>
-                            <h5 class="mt-2">Give Great Gifts</h5>
-                            <p>See what everyone wants - no more guessing or hoping you got it right!</p>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <i class="bi bi-check-circle fs-1 text-primary"></i>
-                            <h5 class="mt-2">No Duplicates</h5>
-                            <p>Claim items to let others know you've got it covered</p>
-                        </div>
-                    </div>
-                </div>
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <div class="hero-icon">
+                <i class="bi bi-gift-fill"></i>
+            </div>
+            <h1 class="hero-title">
+                Power Family <span>Wishlist</span>
+            </h1>
+            <p class="hero-subtitle">
+                Give gifts people actually want — no more guessing, no more duplicates, 
+                just perfect presents every time.
+            </p>
+            <div class="hero-cta">
+                <a href="{{ url_for('main.login') }}" class="btn btn-hero-primary">
+                    <i class="bi bi-box-arrow-in-right"></i> Sign In
+                </a>
+                <a href="{{ url_for('main.public_help') }}" class="btn btn-hero-secondary">
+                    <i class="bi bi-info-circle"></i> Learn More
+                </a>
             </div>
         </div>
     </div>
-</div>
+    
+    <!-- Decorative gift icons -->
+    <i class="bi bi-gift decoration decoration-1"></i>
+    <i class="bi bi-stars decoration decoration-2"></i>
+    <i class="bi bi-heart decoration decoration-3"></i>
+    <i class="bi bi-box decoration decoration-4"></i>
+</section>
+
+<!-- Features Section -->
+<section class="features">
+    <div class="container">
+        <div class="features-header">
+            <h2>How It Works</h2>
+            <p>Three simple steps to better gift-giving</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-list-heart"></i>
+                </div>
+                <h3>Create Your Wishlist</h3>
+                <p>Add items you'd love to receive with links, prices, and helpful notes. We even auto-fetch product images!</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <h3>Browse Family Lists</h3>
+                <p>See exactly what everyone wants. No more awkward guessing or hoping you got the right size or color.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <h3>Claim & Coordinate</h3>
+                <p>Mark items you're getting to prevent duplicates. Others can see it's claimed without knowing who's buying.</p>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}

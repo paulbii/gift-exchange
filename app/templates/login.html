@@ -2,56 +2,307 @@
 
 {% block title %}Log In{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ========== Auth Page Layout ========== */
+    .auth-page {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+    
+    .auth-container {
+        width: 100%;
+        max-width: 440px;
+    }
+    
+    /* ========== Auth Card ========== */
+    .auth-card {
+        background: var(--color-card);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        animation: fadeInUp 0.5s ease;
+    }
+    
+    .auth-header {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        padding: 40px 32px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .auth-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -30%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .auth-header::after {
+        content: '';
+        position: absolute;
+        bottom: -40%;
+        left: -20%;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(circle, rgba(212, 175, 55, 0.2) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .auth-logo {
+        font-size: 3rem;
+        color: var(--color-accent-light);
+        margin-bottom: 16px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .auth-title {
+        font-family: var(--font-display);
+        font-size: 1.75rem;
+        color: white;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .auth-subtitle {
+        color: rgba(255, 255, 255, 0.85);
+        margin-top: 8px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .auth-body {
+        padding: 32px;
+    }
+    
+    /* ========== Form Styling ========== */
+    .form-group {
+        margin-bottom: 24px;
+    }
+    
+    .form-group label {
+        font-weight: 600;
+        color: var(--color-text);
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-control {
+        padding: 14px 16px;
+        border: 2px solid var(--color-border);
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .form-control:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px rgba(155, 35, 53, 0.1);
+    }
+    
+    .form-control.is-invalid {
+        border-color: #DC3545;
+    }
+    
+    .invalid-feedback {
+        color: #DC3545;
+        font-size: 0.85rem;
+        margin-top: 6px;
+    }
+    
+    /* ========== Password Input Group ========== */
+    .password-input-group {
+        position: relative;
+    }
+    
+    .password-input-group .form-control {
+        padding-right: 50px;
+    }
+    
+    .password-toggle {
+        position: absolute;
+        right: 2px;
+        top: 2px;
+        bottom: 2px;
+        width: 46px;
+        background: transparent;
+        border: none;
+        color: var(--color-text-muted);
+        cursor: pointer;
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        transition: all 0.2s ease;
+    }
+    
+    .password-toggle:hover {
+        color: var(--color-primary);
+        background: var(--color-bg-alt);
+    }
+    
+    /* ========== Remember Me ========== */
+    .remember-group {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+    }
+    
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+    
+    .form-check-label {
+        font-weight: 500;
+        color: var(--color-text-muted);
+        cursor: pointer;
+    }
+    
+    .forgot-link {
+        font-size: 0.9rem;
+        color: var(--color-primary);
+        font-weight: 500;
+    }
+    
+    .forgot-link:hover {
+        color: var(--color-primary-light);
+        text-decoration: underline;
+    }
+    
+    /* ========== Submit Button ========== */
+    .btn-login {
+        width: 100%;
+        padding: 16px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-login:hover {
+        background: var(--color-primary-light);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(155, 35, 53, 0.3);
+    }
+    
+    .btn-login:active {
+        transform: translateY(0);
+    }
+    
+    /* ========== Divider ========== */
+    .auth-divider {
+        display: flex;
+        align-items: center;
+        margin: 24px 0;
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+    }
+    
+    .auth-divider::before,
+    .auth-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--color-border);
+    }
+    
+    .auth-divider span {
+        padding: 0 16px;
+    }
+    
+    /* ========== Footer Links ========== */
+    .auth-footer {
+        text-align: center;
+        padding: 20px 32px 32px;
+        background: var(--color-bg);
+        border-top: 1px solid var(--color-border);
+    }
+    
+    .auth-footer p {
+        color: var(--color-text-muted);
+        margin: 0;
+    }
+    
+    .auth-footer a {
+        color: var(--color-primary);
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow-sm mt-5">
-                <div class="card-body p-4">
-                    <h2 class="card-title text-center mb-4">Log In</h2>
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="bi bi-gift-fill"></i>
+                </div>
+                <h1 class="auth-title">Welcome Back</h1>
+                <p class="auth-subtitle">Sign in to your family wishlist</p>
+            </div>
+            
+            <div class="auth-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
                     
-                    <form method="POST">
-                        {{ form.hidden_tag() }}
-                        
-                        <div class="mb-3">
-                            {{ form.email.label(class="form-label") }}
-                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
-                            {% if form.email.errors %}
-                                <div class="invalid-feedback">
-                                    {{ form.email.errors[0] }}
-                                </div>
-                            {% endif %}
+                    <div class="form-group">
+                        <label for="email">
+                            <i class="bi bi-envelope"></i> Email Address
+                        </label>
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="you@example.com") }}
+                        {% if form.email.errors %}
+                        <div class="invalid-feedback">{{ form.email.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">
+                            <i class="bi bi-lock"></i> Password
+                        </label>
+                        <div class="password-input-group">
+                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), id="passwordField", placeholder="Enter your password") }}
+                            <button class="password-toggle" type="button" id="togglePassword" aria-label="Toggle password visibility">
+                                <i class="bi bi-eye" id="toggleIcon"></i>
+                            </button>
                         </div>
-                        
-                        <div class="mb-3">
-                            {{ form.password.label(class="form-label") }}
-                            <div class="input-group">
-                                {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), id="passwordField") }}
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                    <i class="bi bi-eye" id="toggleIcon"></i>
-                                </button>
-                            </div>
-                            {% if form.password.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.password.errors[0] }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-3 form-check">
+                        {% if form.password.errors %}
+                        <div class="invalid-feedback d-block">{{ form.password.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="remember-group">
+                        <div class="form-check">
                             {{ form.remember_me(class="form-check-input") }}
                             {{ form.remember_me.label(class="form-check-label") }}
                         </div>
-                        
-                        <div class="d-grid">
-                            {{ form.submit(class="btn btn-primary") }}
-                        </div>
-                    </form>
-                    
-                    <div class="text-center mt-3">
-                        <a href="{{ url_for('main.forgot_password') }}">Forgot password?</a>
+                        <a href="{{ url_for('main.forgot_password') }}" class="forgot-link">Forgot password?</a>
                     </div>
-                </div>
+                    
+                    <button type="submit" class="btn-login">
+                        <i class="bi bi-box-arrow-in-right"></i> Sign In
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -63,11 +314,8 @@ const passwordField = document.getElementById('passwordField');
 const toggleIcon = document.getElementById('toggleIcon');
 
 togglePassword.addEventListener('click', function() {
-    // Toggle password visibility
     const type = passwordField.type === 'password' ? 'text' : 'password';
     passwordField.type = type;
-    
-    // Toggle icon
     toggleIcon.classList.toggle('bi-eye');
     toggleIcon.classList.toggle('bi-eye-slash');
 });

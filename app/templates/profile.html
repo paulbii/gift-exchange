@@ -2,46 +2,310 @@
 
 {% block title %}Profile{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ========== Profile Layout ========== */
+    .profile-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    /* ========== Profile Header ========== */
+    .profile-header {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        border-radius: var(--radius-xl);
+        padding: 40px;
+        color: white;
+        text-align: center;
+        margin-bottom: 32px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(155, 35, 53, 0.25);
+    }
+    
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: var(--color-primary);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .profile-header h1 {
+        font-family: var(--font-display);
+        font-size: 1.75rem;
+        color: white;
+        margin-bottom: 8px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .profile-header p {
+        opacity: 0.9;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* ========== Profile Cards ========== */
+    .profile-card {
+        background: var(--color-card);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 24px;
+        overflow: hidden;
+        animation: fadeInUp 0.4s ease both;
+    }
+    
+    .profile-card:nth-child(1) { animation-delay: 0.1s; }
+    .profile-card:nth-child(2) { animation-delay: 0.2s; }
+    
+    .profile-card-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .profile-card-header i {
+        font-size: 1.25rem;
+        color: var(--color-primary);
+    }
+    
+    .profile-card-header h2 {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        color: var(--color-text);
+        margin: 0;
+    }
+    
+    .profile-card-body {
+        padding: 24px;
+    }
+    
+    /* ========== Form Styling ========== */
+    .form-group {
+        margin-bottom: 24px;
+    }
+    
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+    
+    .form-group label {
+        font-weight: 600;
+        color: var(--color-text);
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-control {
+        padding: 14px 16px;
+        border: 2px solid var(--color-border);
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .form-control:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px rgba(155, 35, 53, 0.1);
+    }
+    
+    .form-control:disabled {
+        background: var(--color-bg-alt);
+        color: var(--color-text-muted);
+        cursor: not-allowed;
+    }
+    
+    .form-hint {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        margin-top: 8px;
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+    }
+    
+    .form-hint i {
+        margin-top: 2px;
+    }
+    
+    /* ========== Security Section ========== */
+    .security-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+    
+    .security-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .security-item:first-child {
+        padding-top: 0;
+    }
+    
+    .security-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    .security-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--color-bg-alt);
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-text-muted);
+        font-size: 1.25rem;
+    }
+    
+    .security-text h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--color-text);
+        margin-bottom: 2px;
+    }
+    
+    .security-text p {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        margin: 0;
+    }
+    
+    /* ========== Buttons ========== */
+    .btn-save {
+        padding: 14px 32px;
+        font-weight: 600;
+    }
+    
+    @media (max-width: 576px) {
+        .profile-header {
+            padding: 32px 24px;
+        }
+        
+        .security-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .security-item .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
-    <div class="row">
-        <div class="col-md-8">
-            <h1 class="mb-4"><i class="bi bi-person"></i> Profile</h1>
-            
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Account Information</h5>
-                    
-                    <form method="POST">
-                        {{ form.hidden_tag() }}
-                        
-                        <div class="mb-3">
-                            {{ form.name.label(class="form-label") }}
-                            {{ form.name(class="form-control") }}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Account Email</label>
-                            <input type="text" class="form-control" value="{{ current_user.email }}" disabled>
-                            <small class="text-muted">Used for login and notifications</small>
-                        </div>
-                        
-                        <div class="mb-3">
-                            {{ form.gift_delivery_email.label(class="form-label") }}
-                            {{ form.gift_delivery_email(class="form-control", placeholder=current_user.email) }}
-                            <small class="text-muted">Where should digital gifts be sent? Defaults to your account email if left blank.</small>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </form>
-                </div>
+    <div class="profile-container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-avatar">
+                {{ current_user.name[0].upper() }}
             </div>
-            
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Security</h5>
-                    <a href="{{ url_for('main.change_password') }}" class="btn btn-outline-primary">
-                        <i class="bi bi-key"></i> Change Password
+            <h1>{{ current_user.name }}</h1>
+            <p><i class="bi bi-envelope"></i> {{ current_user.email }}</p>
+        </div>
+        
+        <!-- Account Information -->
+        <div class="profile-card">
+            <div class="profile-card-header">
+                <i class="bi bi-person-circle"></i>
+                <h2>Account Information</h2>
+            </div>
+            <div class="profile-card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="form-group">
+                        <label for="name">
+                            <i class="bi bi-person"></i> Display Name
+                        </label>
+                        {{ form.name(class="form-control", placeholder="Your name") }}
+                        <div class="form-hint">
+                            <i class="bi bi-info-circle"></i>
+                            This is how family members will see you
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <i class="bi bi-envelope"></i> Account Email
+                        </label>
+                        <input type="text" class="form-control" value="{{ current_user.email }}" disabled>
+                        <div class="form-hint">
+                            <i class="bi bi-lock"></i>
+                            Used for login and notifications (cannot be changed)
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gift_delivery_email">
+                            <i class="bi bi-gift"></i> Gift Delivery Email
+                        </label>
+                        {{ form.gift_delivery_email(class="form-control", placeholder=current_user.email) }}
+                        <div class="form-hint">
+                            <i class="bi bi-info-circle"></i>
+                            Where should digital gifts (e-gift cards, online orders) be sent? Leave blank to use your account email.
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-save">
+                        <i class="bi bi-check-lg"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Security -->
+        <div class="profile-card">
+            <div class="profile-card-header">
+                <i class="bi bi-shield-check"></i>
+                <h2>Security</h2>
+            </div>
+            <div class="profile-card-body">
+                <div class="security-item">
+                    <div class="security-info">
+                        <div class="security-icon">
+                            <i class="bi bi-key"></i>
+                        </div>
+                        <div class="security-text">
+                            <h4>Password</h4>
+                            <p>Keep your account secure with a strong password</p>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('main.change_password') }}" class="btn btn-secondary">
+                        <i class="bi bi-pencil"></i> Change
                     </a>
                 </div>
             </div>

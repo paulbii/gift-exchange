@@ -5,37 +5,599 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %} - Power Family Wishlist</title>
     
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <style>
-        /* Mobile-first responsive styles */
+        /* ========== CSS Variables - Warm Gift Shop Palette ========== */
+        :root {
+            /* Primary - Warm cranberry/burgundy */
+            --color-primary: #9B2335;
+            --color-primary-dark: #7A1C2A;
+            --color-primary-light: #C84B5B;
+            
+            /* Accent - Soft gold */
+            --color-accent: #D4AF37;
+            --color-accent-light: #F4D58D;
+            --color-accent-dark: #B8960C;
+            
+            /* Success/Available - Forest green */
+            --color-success: #4A7C59;
+            --color-success-light: #E8F5E9;
+            
+            /* Warning/Claimed - Warm amber */
+            --color-warning: #C9A227;
+            --color-warning-light: #FFF8E1;
+            
+            /* Neutrals - Warm tones */
+            --color-bg: #FAF7F2;
+            --color-bg-alt: #F5F0E8;
+            --color-card: #FFFFFF;
+            --color-text: #2D2926;
+            --color-text-muted: #6B5B54;
+            --color-border: #E8E2D9;
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 8px rgba(45, 41, 38, 0.08);
+            --shadow-md: 0 4px 16px rgba(45, 41, 38, 0.1);
+            --shadow-lg: 0 12px 32px rgba(45, 41, 38, 0.12);
+            --shadow-hover: 0 12px 24px rgba(45, 41, 38, 0.15);
+            
+            /* Typography */
+            --font-display: 'Playfair Display', Georgia, serif;
+            --font-body: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+            
+            /* Spacing */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+        
+        /* ========== Base Styles ========== */
+        * {
+            box-sizing: border-box;
+        }
+        
         body {
+            font-family: var(--font-body);
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--color-text);
+            background: var(--color-bg);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
+        
         main {
             flex: 1;
         }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-display);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--color-text);
+        }
+        
+        h1 { font-size: 2.25rem; }
+        h2 { font-size: 1.75rem; }
+        h3 { font-size: 1.5rem; }
+        h4 { font-size: 1.25rem; }
+        
+        a {
+            color: var(--color-primary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        
+        a:hover {
+            color: var(--color-primary-light);
+        }
+        
+        /* ========== Navigation ========== */
+        .navbar {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(155, 35, 53, 0.25);
+            position: relative;
+            z-index: 1000;
+        }
+        
+        .navbar::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--color-accent), var(--color-accent-light), var(--color-accent));
+        }
+        
         .navbar-brand {
-            font-weight: bold;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white !important;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s ease;
         }
-        /* Ensure touch targets are big enough on mobile */
+        
+        .navbar-brand:hover {
+            transform: scale(1.02);
+        }
+        
+        .navbar-brand i {
+            font-size: 1.75rem;
+            color: var(--color-accent-light);
+        }
+        
+        .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .navbar-nav .nav-link:hover {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .navbar-nav .nav-link i {
+            font-size: 1.1rem;
+        }
+        
+        .navbar-toggler {
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+        }
+        
+        /* ========== Buttons ========== */
         .btn {
+            font-family: var(--font-body);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-sm);
             min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            border: none;
         }
+        
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(155, 35, 53, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: var(--color-primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(155, 35, 53, 0.35);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: var(--color-bg-alt);
+            color: var(--color-text);
+            border: 2px solid var(--color-border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--color-border);
+            border-color: var(--color-border);
+            color: var(--color-text);
+        }
+        
+        .btn-success {
+            background: var(--color-success);
+            color: white;
+            box-shadow: 0 4px 12px rgba(74, 124, 89, 0.3);
+        }
+        
+        .btn-success:hover {
+            background: #3D6B4A;
+            transform: translateY(-2px);
+        }
+        
+        .btn-warning {
+            background: var(--color-warning);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #DC3545;
+            color: white;
+        }
+        
+        .btn-outline-secondary {
+            background: transparent;
+            border: 2px solid var(--color-border);
+            color: var(--color-text-muted);
+        }
+        
+        .btn-outline-secondary:hover {
+            background: var(--color-bg-alt);
+            border-color: var(--color-text-muted);
+            color: var(--color-text);
+        }
+        
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            min-height: 36px;
+            font-size: 0.875rem;
+        }
+        
+        .btn-lg {
+            padding: 1rem 2rem;
+            font-size: 1.125rem;
+        }
+        
+        /* ========== Cards ========== */
+        .card {
+            background: var(--color-card);
+            border: none;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        /* ========== Forms ========== */
         .form-control {
+            font-family: var(--font-body);
             min-height: 44px;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            background: var(--color-card);
+            color: var(--color-text);
+            transition: all 0.2s ease;
         }
-        /* Better spacing on mobile */
+        
+        .form-control:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 4px rgba(155, 35, 53, 0.1);
+            outline: none;
+        }
+        
+        .form-control::placeholder {
+            color: var(--color-text-muted);
+            opacity: 0.7;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-select {
+            min-height: 44px;
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-sm);
+        }
+        
+        .form-select:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 4px rgba(155, 35, 53, 0.1);
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+        
+        /* ========== Alerts ========== */
+        .alert {
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: var(--color-success-light);
+            color: var(--color-success);
+        }
+        
+        .alert-warning {
+            background: var(--color-warning-light);
+            color: #8B6914;
+        }
+        
+        .alert-danger {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+        
+        .alert-info {
+            background: #E3F2FD;
+            color: #1565C0;
+        }
+        
+        /* ========== Badges ========== */
+        .badge {
+            font-family: var(--font-body);
+            font-weight: 600;
+            padding: 0.4em 0.8em;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            letter-spacing: 0.02em;
+        }
+        
+        .badge.bg-primary {
+            background: var(--color-primary) !important;
+        }
+        
+        .badge.bg-success {
+            background: var(--color-success) !important;
+        }
+        
+        .badge.bg-warning {
+            background: var(--color-warning) !important;
+            color: white !important;
+        }
+        
+        .badge.bg-secondary {
+            background: var(--color-text-muted) !important;
+        }
+        
+        /* ========== Status Badges ========== */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        
+        .status-available {
+            background: var(--color-success-light);
+            color: var(--color-success);
+        }
+        
+        .status-claimed {
+            background: var(--color-warning-light);
+            color: #B8860B;
+        }
+        
+        .status-received {
+            background: #ECEFF1;
+            color: #546E7A;
+        }
+        
+        /* ========== Tabs ========== */
+        .nav-tabs {
+            border-bottom: 2px solid var(--color-border);
+            gap: 0.5rem;
+        }
+        
+        .nav-tabs .nav-link {
+            font-family: var(--font-body);
+            font-weight: 600;
+            color: var(--color-text-muted);
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 0.75rem 1.25rem;
+            margin-bottom: -2px;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: var(--color-primary);
+            border-color: transparent;
+            background: transparent;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--color-primary);
+            background: transparent;
+            border-color: var(--color-primary);
+        }
+        
+        /* ========== Flash Messages ========== */
+        .flash-container {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 400px;
+        }
+        
+        .flash-container .alert {
+            animation: slideIn 0.3s ease;
+            box-shadow: var(--shadow-md);
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* ========== Footer ========== */
+        .footer {
+            background: var(--color-card);
+            border-top: 1px solid var(--color-border);
+            padding: 1.5rem 0;
+            margin-top: auto;
+        }
+        
+        .footer a {
+            color: var(--color-text-muted);
+        }
+        
+        .footer a:hover {
+            color: var(--color-primary);
+        }
+        
+        /* ========== Animations ========== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .animate-fadeIn {
+            animation: fadeIn 0.4s ease;
+        }
+        
+        .animate-fadeInUp {
+            animation: fadeInUp 0.4s ease;
+        }
+        
+        /* ========== Utilities ========== */
+        .text-muted {
+            color: var(--color-text-muted) !important;
+        }
+        
+        .bg-light {
+            background: var(--color-bg-alt) !important;
+        }
+        
+        .border {
+            border-color: var(--color-border) !important;
+        }
+        
+        .shadow-sm {
+            box-shadow: var(--shadow-sm) !important;
+        }
+        
+        .shadow {
+            box-shadow: var(--shadow-md) !important;
+        }
+        
+        .shadow-lg {
+            box-shadow: var(--shadow-lg) !important;
+        }
+        
+        /* ========== Page Title ========== */
+        .page-title {
+            font-family: var(--font-display);
+            font-size: 2.25rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .page-title i {
+            color: var(--color-primary);
+        }
+        
+        .page-subtitle {
+            color: var(--color-text-muted);
+            font-size: 1.1rem;
+        }
+        
+        /* ========== Responsive ========== */
         @media (max-width: 768px) {
             .container {
-                padding-left: 15px;
-                padding-right: 15px;
+                padding-left: 16px;
+                padding-right: 16px;
             }
+            
+            h1, .page-title {
+                font-size: 1.75rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1.25rem;
+            }
+            
+            .navbar-brand i {
+                font-size: 1.5rem;
+            }
+            
+            .btn {
+                padding: 0.625rem 1.25rem;
+            }
+            
+            .flash-container {
+                left: 16px;
+                right: 16px;
+                max-width: none;
+            }
+        }
+        
+        /* ========== Loading States ========== */
+        .skeleton {
+            background: linear-gradient(90deg, var(--color-bg-alt) 25%, var(--color-border) 50%, var(--color-bg-alt) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: var(--radius-sm);
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
     </style>
     
@@ -43,10 +605,10 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('main.index') }}">
-                <i class="bi bi-gift"></i> Power Family Wishlist
+                <i class="bi bi-gift-fill"></i> Power Family Wishlist
             </a>
             
             {% if current_user.is_authenticated %}
@@ -58,34 +620,34 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.dashboard') }}">
-                            <i class="bi bi-house-door"></i> Home
+                            <i class="bi bi-house-door-fill"></i> Home
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.my_list') }}">
-                            <i class="bi bi-list-ul"></i> My List
+                            <i class="bi bi-list-heart"></i> My List
                         </a>
                     </li>
                     {% if current_user.is_admin %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.invite_user') }}">
-                            <i class="bi bi-person-plus"></i> Invite
+                            <i class="bi bi-person-plus-fill"></i> Invite
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.user_management') }}">
-                            <i class="bi bi-people"></i> Users
+                            <i class="bi bi-people-fill"></i> Users
                         </a>
                     </li>
                     {% endif %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.profile') }}">
-                            <i class="bi bi-person"></i> Profile
+                            <i class="bi bi-person-circle"></i> Profile
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.help_guide') }}">
-                            <i class="bi bi-question-circle"></i> Help
+                            <i class="bi bi-question-circle-fill"></i> Help
                         </a>
                     </li>
                     <li class="nav-item">
@@ -102,9 +664,13 @@
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <div class="container mt-3">
+            <div class="flash-container">
                 {% for category, message in messages %}
                     <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {% if category == 'success' %}<i class="bi bi-check-circle-fill me-2"></i>
+                        {% elif category == 'danger' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {% elif category == 'warning' %}<i class="bi bi-exclamation-circle-fill me-2"></i>
+                        {% else %}<i class="bi bi-info-circle-fill me-2"></i>{% endif %}
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
@@ -119,9 +685,10 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-light py-3 mt-auto">
-        <div class="container text-center text-muted">
-            <small>
+    <footer class="footer">
+        <div class="container text-center">
+            <small class="text-muted">
+                <i class="bi bi-heart-fill" style="color: var(--color-primary); font-size: 0.7rem;"></i>
                 &copy; {{ current_year }} Power Family Wishlist
                 {% if current_user.is_authenticated %}
                 • <a href="{{ url_for('main.help_guide') }}">Help</a>
@@ -134,6 +701,19 @@
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Auto-dismiss flash messages -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-dismiss flash messages after 5 seconds
+            setTimeout(function() {
+                document.querySelectorAll('.flash-container .alert').forEach(function(alert) {
+                    var bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+        });
+    </script>
     
     {% block extra_js %}{% endblock %}
 </body>

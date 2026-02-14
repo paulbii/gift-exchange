@@ -2,124 +2,470 @@
 
 {% block title %}{% if edit %}Edit{% else %}Add{% endif %} Item{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ========== Form Container ========== */
+    .form-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    /* ========== Form Card ========== */
+    .form-card {
+        background: var(--color-card);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        animation: fadeInUp 0.4s ease;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        padding: 32px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .form-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .form-header h1 {
+        font-family: var(--font-display);
+        font-size: 1.75rem;
+        color: white;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .form-header h1 i {
+        color: var(--color-accent-light);
+    }
+    
+    .form-header p {
+        margin: 8px 0 0;
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .form-body {
+        padding: 32px;
+    }
+    
+    /* ========== Restore Warning ========== */
+    .restore-warning {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 20px;
+        background: var(--color-warning-light);
+        border-radius: var(--radius-md);
+        margin-bottom: 24px;
+        border-left: 4px solid var(--color-warning);
+    }
+    
+    .restore-warning i {
+        color: var(--color-warning);
+        font-size: 1.5rem;
+        margin-top: 2px;
+    }
+    
+    .restore-warning h6 {
+        font-weight: 600;
+        color: var(--color-text);
+        margin-bottom: 4px;
+    }
+    
+    .restore-warning p {
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+    }
+    
+    /* ========== Form Groups ========== */
+    .form-group {
+        margin-bottom: 24px;
+    }
+    
+    .form-group label {
+        font-weight: 600;
+        color: var(--color-text);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .form-group label i {
+        color: var(--color-primary);
+    }
+    
+    .help-icon {
+        color: var(--color-text-muted);
+        cursor: help;
+        font-size: 0.9rem;
+    }
+    
+    .form-hint {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        margin-top: 6px;
+    }
+    
+    /* ========== Input Styling ========== */
+    .form-control {
+        padding: 14px 16px;
+        border: 2px solid var(--color-border);
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .form-control:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px rgba(155, 35, 53, 0.1);
+    }
+    
+    .form-control::placeholder {
+        color: var(--color-text-muted);
+        opacity: 0.6;
+    }
+    
+    .form-control.is-invalid {
+        border-color: #DC3545;
+    }
+    
+    .invalid-feedback {
+        color: #DC3545;
+        font-size: 0.85rem;
+        margin-top: 6px;
+    }
+    
+    /* ========== Input Group ========== */
+    .input-group {
+        position: relative;
+    }
+    
+    .input-group .input-group-text {
+        background: var(--color-bg-alt);
+        border: 2px solid var(--color-border);
+        border-right: none;
+        border-radius: var(--radius-md) 0 0 var(--radius-md);
+        color: var(--color-text-muted);
+        font-weight: 600;
+        padding: 14px 16px;
+    }
+    
+    .input-group .form-control {
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    }
+    
+    /* ========== Two Column Layout ========== */
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    @media (max-width: 576px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* ========== Image Preview ========== */
+    .image-preview-container {
+        margin-top: 16px;
+    }
+    
+    .image-preview {
+        display: inline-block;
+        position: relative;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .image-preview img {
+        max-width: 200px;
+        height: auto;
+        display: block;
+    }
+    
+    .image-preview-badge {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(74, 124, 89, 0.9);
+        color: white;
+        padding: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-align: center;
+    }
+    
+    /* ========== Options Card ========== */
+    .options-card {
+        background: var(--color-bg-alt);
+        border-radius: var(--radius-md);
+        padding: 24px;
+        margin-bottom: 24px;
+        border: 2px solid var(--color-border);
+    }
+    
+    .options-card-title {
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        color: var(--color-text);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .options-card-title i {
+        color: var(--color-primary);
+    }
+    
+    /* ========== Toggle Switch ========== */
+    .toggle-group {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px;
+        background: var(--color-card);
+        border-radius: var(--radius-sm);
+        border: 2px solid var(--color-border);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .toggle-group:hover {
+        border-color: var(--color-primary-light);
+    }
+    
+    .toggle-group.active {
+        border-color: var(--color-primary);
+        background: rgba(155, 35, 53, 0.05);
+    }
+    
+    .toggle-content {
+        flex-grow: 1;
+    }
+    
+    .toggle-content label {
+        font-weight: 600;
+        color: var(--color-text);
+        margin-bottom: 2px;
+        cursor: pointer;
+    }
+    
+    .toggle-content small {
+        color: var(--color-text-muted);
+        font-size: 0.85rem;
+    }
+    
+    .form-check-input {
+        width: 24px;
+        height: 24px;
+        margin-top: 2px;
+        cursor: pointer;
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+    
+    /* ========== Max Claims Field ========== */
+    .max-claims-field {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--color-border);
+        animation: fadeIn 0.3s ease;
+    }
+    
+    /* ========== Form Actions ========== */
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        padding-top: 8px;
+    }
+    
+    .form-actions .btn {
+        padding: 14px 28px;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    
+    .form-actions .btn-primary {
+        flex: 1;
+        max-width: 200px;
+    }
+    
+    @media (max-width: 576px) {
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+            max-width: none;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm mt-4">
-                <div class="card-body p-4">
-                    {% if restoring %}
-                    <div class="alert alert-warning">
-                        <h6 class="alert-heading">
-                            <i class="bi bi-exclamation-triangle"></i> Restoring Archived Item
-                        </h6>
-                        <p class="mb-0">
-                            This item was marked as received on <strong>{{ item.received_at.strftime('%B %d, %Y') }}</strong>.
-                            Please verify the URL and price are still current before saving.
-                        </p>
-                    </div>
+    <div class="form-container">
+        <div class="form-card">
+            <div class="form-header">
+                <h1>
+                    {% if edit %}
+                    <i class="bi bi-pencil-square"></i> Edit Item
+                    {% else %}
+                    <i class="bi bi-plus-circle-fill"></i> Add New Wish
                     {% endif %}
-                    
-                    <h2 class="card-title mb-4">
-                        {% if edit %}
-                        <i class="bi bi-pencil"></i> Edit Item
-                        {% else %}
-                        <i class="bi bi-plus-circle"></i> Add Item to {{ list.name }}
-                        {% endif %}
-                    </h2>
-                    
-                    <form method="POST">
-                        {{ form.hidden_tag() }}
-                        
-                        <div class="mb-3">
-                            {{ form.title.label(class="form-label") }}
-                            {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else ""), placeholder="e.g., Blue Running Shoes") }}
-                            {% if form.title.errors %}
-                                <div class="invalid-feedback">{{ form.title.errors[0] }}</div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            {{ form.description.label(class="form-label") }}
-                            <button type="button" class="btn btn-link btn-sm p-0 ms-1" data-bs-toggle="popover" data-bs-trigger="focus" tabindex="0" data-bs-content="Describe the item with details like size, color, specific model, etc." title="Description Help">
-                                <i class="bi bi-info-circle"></i>
-                            </button>
-                            {{ form.description(class="form-control", rows=3, placeholder="e.g., Size Medium, Navy Blue, Model XR-500") }}
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                {{ form.url.label(class="form-label") }}
-                                <button type="button" class="btn btn-link btn-sm p-0 ms-1" data-bs-toggle="popover" data-bs-trigger="focus" tabindex="0" data-bs-content="Link to where this can be purchased. We'll automatically try to fetch a product image when you save!" title="URL Help">
-                                    <i class="bi bi-info-circle"></i>
-                                </button>
-                                {{ form.url(class="form-control" + (" is-invalid" if form.url.errors else ""), placeholder="https://...", id="itemUrl") }}
-                                {% if form.url.errors %}
-                                    <div class="invalid-feedback">{{ form.url.errors[0] }}</div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                {{ form.price.label(class="form-label") }}
-                                <button type="button" class="btn btn-link btn-sm p-0 ms-1" data-bs-toggle="popover" data-bs-trigger="focus" tabindex="0" data-bs-content="Optional - helps gift-givers know the budget" title="Price Help">
-                                    <i class="bi bi-info-circle"></i>
-                                </button>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    {{ form.price(class="form-control", placeholder="0.00") }}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Optional Image URL Override -->
-                        <div class="mb-3">
-                            {{ form.image_url.label(class="form-label") }}
-                            <button type="button" class="btn btn-link btn-sm p-0 ms-1" data-bs-toggle="popover" data-bs-trigger="focus" tabindex="0" data-bs-content="Optional: Image is auto-fetched from URL. You can override by pasting a direct image link here." title="Image Help">
-                                <i class="bi bi-info-circle"></i>
-                            </button>
-                            {{ form.image_url(class="form-control" + (" is-invalid" if form.image_url.errors else ""), placeholder="Leave blank to auto-fetch from URL", id="imageUrl") }}
-                            {% if form.image_url.errors %}
-                                <div class="invalid-feedback">{{ form.image_url.errors[0] }}</div>
-                            {% endif %}
-                            
-                            <!-- Image Preview -->
-                            <div id="imagePreview" class="mt-3" style="display: none;">
-                                <div class="card" style="max-width: 300px;">
-                                    <img id="previewImg" src="" class="card-img-top" alt="Item preview">
-                                    <div class="card-body p-2">
-                                        <small class="text-success">
-                                            <i class="bi bi-check-circle"></i> Preview
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="card bg-light mb-3">
-                            <div class="card-body">
-                                <div class="form-check form-switch mb-3">
-                                    {{ form.allow_multiple(class="form-check-input", id="allowMultipleSwitch") }}
-                                    {{ form.allow_multiple.label(class="form-check-label") }}
-                                    <small class="d-block text-muted">For items like gift cards where multiple people can buy</small>
-                                </div>
-                                
-                                <div id="maxClaimsGroup" style="display: none;">
-                                    {{ form.max_claims.label(class="form-label") }}
-                                    <button type="button" class="btn btn-link btn-sm p-0 ms-1" data-bs-toggle="popover" data-bs-trigger="focus" tabindex="0" data-bs-content="Usually 1 (only one person gets this). Set higher if multiple people can give the same gift." title="Max Claims Help">
-                                        <i class="bi bi-info-circle"></i>
-                                    </button>
-                                    <small class="text-muted d-block">(Leave blank for unlimited)</small>
-                                    {{ form.max_claims(class="form-control", placeholder="e.g., 3") }}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex gap-2">
-                            {{ form.submit(class="btn btn-primary") }}
-                            <a href="{{ url_for('main.my_list') }}" class="btn btn-secondary">Cancel</a>
-                        </div>
-                    </form>
+                </h1>
+                <p>
+                    {% if edit %}
+                    Update the details for this item
+                    {% else %}
+                    Adding to {{ list.name }}
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div class="form-body">
+                {% if restoring %}
+                <div class="restore-warning">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <div>
+                        <h6>Restoring Archived Item</h6>
+                        <p>This item was marked as received on <strong>{{ item.received_at.strftime('%B %d, %Y') }}</strong>. 
+                           Please verify the URL and price are still current before saving.</p>
+                    </div>
                 </div>
+                {% endif %}
+                
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Title -->
+                    <div class="form-group">
+                        <label for="title">
+                            <i class="bi bi-tag"></i> Item Name
+                        </label>
+                        {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else ""), placeholder="e.g., Blue Running Shoes, AirPods Pro, Cozy Blanket") }}
+                        {% if form.title.errors %}
+                        <div class="invalid-feedback">{{ form.title.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label for="description">
+                            <i class="bi bi-text-paragraph"></i> Description
+                            <span class="help-icon" data-bs-toggle="tooltip" title="Add details like size, color, model number, etc.">
+                                <i class="bi bi-question-circle"></i>
+                            </span>
+                        </label>
+                        {{ form.description(class="form-control", rows=3, placeholder="Size Medium, Navy Blue, Model XR-500...") }}
+                        <div class="form-hint">Optional but helpful for gift-givers</div>
+                    </div>
+                    
+                    <!-- URL and Price Row -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="url">
+                                <i class="bi bi-link-45deg"></i> Product URL
+                            </label>
+                            {{ form.url(class="form-control" + (" is-invalid" if form.url.errors else ""), placeholder="https://amazon.com/...", id="itemUrl") }}
+                            {% if form.url.errors %}
+                            <div class="invalid-feedback">{{ form.url.errors[0] }}</div>
+                            {% endif %}
+                            <div class="form-hint">We'll auto-fetch the product image</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="price">
+                                <i class="bi bi-currency-dollar"></i> Price
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.price(class="form-control", placeholder="0.00") }}
+                            </div>
+                            <div class="form-hint">Helps gift-givers budget</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Image URL Override -->
+                    <div class="form-group">
+                        <label for="image_url">
+                            <i class="bi bi-image"></i> Image URL
+                            <span class="help-icon" data-bs-toggle="tooltip" title="Leave blank to auto-fetch from product URL. Or paste a direct image link to override.">
+                                <i class="bi bi-question-circle"></i>
+                            </span>
+                        </label>
+                        {{ form.image_url(class="form-control" + (" is-invalid" if form.image_url.errors else ""), placeholder="Leave blank to auto-fetch, or paste image URL", id="imageUrl") }}
+                        {% if form.image_url.errors %}
+                        <div class="invalid-feedback">{{ form.image_url.errors[0] }}</div>
+                        {% endif %}
+                        
+                        <div id="imagePreview" class="image-preview-container" style="display: none;">
+                            <div class="image-preview">
+                                <img id="previewImg" src="" alt="Item preview">
+                                <div class="image-preview-badge">
+                                    <i class="bi bi-check-circle"></i> Preview
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Multiple Claims Options -->
+                    <div class="options-card">
+                        <div class="options-card-title">
+                            <i class="bi bi-sliders"></i> Claim Options
+                        </div>
+                        
+                        <div class="toggle-group" id="toggleGroup">
+                            <div class="toggle-content">
+                                {{ form.allow_multiple.label(class="form-check-label mb-0") }}
+                                <small class="d-block">For items like gift cards where multiple people can contribute</small>
+                            </div>
+                            {{ form.allow_multiple(class="form-check-input", id="allowMultipleSwitch") }}
+                        </div>
+                        
+                        <div id="maxClaimsGroup" class="max-claims-field" style="display: none;">
+                            <label for="max_claims">
+                                <i class="bi bi-people"></i> Maximum number of people
+                            </label>
+                            {{ form.max_claims(class="form-control", placeholder="Leave blank for unlimited") }}
+                            <div class="form-hint">How many people can claim this item?</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                        <a href="{{ url_for('main.my_list') }}" class="btn btn-secondary btn-lg">Cancel</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -128,29 +474,43 @@
 
 {% block extra_js %}
 <script>
-// Initialize Bootstrap popovers
-const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
-const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
+// Initialize Bootstrap tooltips
+const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+const tooltipList = [...tooltipTriggerList].map(el => new bootstrap.Tooltip(el));
 
-// Allow multiple switch functionality
+// Toggle group styling
+const toggleGroup = document.getElementById('toggleGroup');
 const allowMultipleSwitch = document.getElementById('allowMultipleSwitch');
 const maxClaimsGroup = document.getElementById('maxClaimsGroup');
 
-allowMultipleSwitch.addEventListener('change', function() {
-    maxClaimsGroup.style.display = this.checked ? 'block' : 'none';
+function updateToggleState() {
+    if (allowMultipleSwitch.checked) {
+        toggleGroup.classList.add('active');
+        maxClaimsGroup.style.display = 'block';
+    } else {
+        toggleGroup.classList.remove('active');
+        maxClaimsGroup.style.display = 'none';
+    }
+}
+
+// Click on toggle group to toggle switch
+toggleGroup.addEventListener('click', function(e) {
+    if (e.target !== allowMultipleSwitch) {
+        allowMultipleSwitch.checked = !allowMultipleSwitch.checked;
+        updateToggleState();
+    }
 });
 
-// Show on page load if checked
-if (allowMultipleSwitch.checked) {
-    maxClaimsGroup.style.display = 'block';
-}
+allowMultipleSwitch.addEventListener('change', updateToggleState);
+
+// Initialize on page load
+updateToggleState();
 
 // Image preview functionality
 const imageUrlInput = document.getElementById('imageUrl');
 const imagePreview = document.getElementById('imagePreview');
 const previewImg = document.getElementById('previewImg');
 
-// Update preview when image URL changes
 imageUrlInput.addEventListener('input', function() {
     updateImagePreview(this.value);
 });
@@ -165,7 +525,6 @@ function updateImagePreview(url) {
         previewImg.src = url;
         imagePreview.style.display = 'block';
         
-        // Handle image load error
         previewImg.onerror = function() {
             imagePreview.style.display = 'none';
         };

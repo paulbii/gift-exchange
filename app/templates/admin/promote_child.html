@@ -2,57 +2,249 @@
 
 {% block title %}Promote to Full Account{% endblock %}
 
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 550px;
+        margin: 0 auto;
+    }
+    
+    .form-card {
+        background: var(--color-card);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        animation: fadeInUp 0.4s ease;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, var(--color-success) 0%, #3D6B4A 100%);
+        padding: 32px;
+        color: white;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .form-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .form-header-icon {
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .form-header-icon i {
+        font-size: 2rem;
+        color: white;
+    }
+    
+    .form-header h1 {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        color: white;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .form-header p {
+        margin: 8px 0 0;
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .form-body {
+        padding: 32px;
+    }
+    
+    .info-box {
+        background: #E3F2FD;
+        border-radius: var(--radius-md);
+        padding: 20px;
+        margin-bottom: 24px;
+        border-left: 4px solid #2196F3;
+    }
+    
+    .info-box h6 {
+        color: #1565C0;
+        font-weight: 600;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .info-box ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #1976D2;
+    }
+    
+    .success-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px 20px;
+        background: var(--color-success-light);
+        border-radius: var(--radius-md);
+        margin: 24px 0;
+        color: var(--color-success);
+    }
+    
+    .success-box i {
+        font-size: 1.25rem;
+        margin-top: 2px;
+    }
+    
+    .success-box strong {
+        display: block;
+        margin-bottom: 2px;
+    }
+    
+    .form-group {
+        margin-bottom: 24px;
+    }
+    
+    .form-group label {
+        font-weight: 600;
+        color: var(--color-text);
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-hint {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        margin-top: 8px;
+    }
+    
+    .form-check {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px;
+        background: var(--color-bg-alt);
+        border-radius: var(--radius-md);
+        margin-bottom: 24px;
+    }
+    
+    .form-check-input {
+        width: 24px;
+        height: 24px;
+        margin-top: 0;
+        flex-shrink: 0;
+    }
+    
+    .form-check-content {
+        flex-grow: 1;
+    }
+    
+    .form-check-label {
+        font-weight: 600;
+        color: var(--color-text);
+        display: block;
+        margin-bottom: 4px;
+    }
+    
+    .form-check-hint {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+    }
+    
+    .form-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .form-actions .btn {
+        padding: 14px 24px;
+        font-weight: 600;
+    }
+    
+    .form-actions .btn-success {
+        font-size: 1.1rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container my-4">
-    <div class="row justify-content-center">
-        <div class="col-md-7">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="bi bi-arrow-up-circle"></i> Promote to Full Account</h4>
+<div class="container">
+    <div class="form-container">
+        <div class="form-card">
+            <div class="form-header">
+                <div class="form-header-icon">
+                    <i class="bi bi-arrow-up-circle"></i>
                 </div>
-                <div class="card-body">
-                    <h5>Promote {{ child.name }}</h5>
+                <h1>Promote to Full Account</h1>
+                <p>{{ child.name }}</p>
+            </div>
+            
+            <div class="form-body">
+                <div class="info-box">
+                    <h6><i class="bi bi-info-circle-fill"></i> What happens when you promote:</h6>
+                    <ul>
+                        <li>{{ child.name }} gets their own login account</li>
+                        <li>Their wishlist stays completely intact</li>
+                        <li>They can manage their own items</li>
+                        <li>You can still view and shop for them</li>
+                        <li>They become independent!</li>
+                    </ul>
+                </div>
+                
+                <form method="POST">
+                    {{ form.hidden_tag() }}
                     
-                    <div class="alert alert-info mt-3">
-                        <h6 class="alert-heading">What happens when you promote:</h6>
-                        <ul class="mb-0">
-                            <li>{{ child.name }} gets their own login account</li>
-                            <li>Their wishlist stays completely intact</li>
-                            <li>They can manage their own items</li>
-                            <li>You can still view and shop for them</li>
-                            <li>They become independent!</li>
-                        </ul>
+                    <div class="form-group">
+                        <label for="email">
+                            <i class="bi bi-envelope"></i> {{ child.name }}'s Email Address
+                        </label>
+                        {{ form.email(class="form-control", placeholder="child@example.com") }}
+                        <div class="form-hint">
+                            <i class="bi bi-info-circle"></i>
+                            They'll receive an invitation to set their password
+                        </div>
                     </div>
                     
-                    <form method="POST" class="mt-4">
-                        {{ form.hidden_tag() }}
-                        
-                        <div class="mb-3">
-                            {{ form.email.label(class="form-label") }}
-                            {{ form.email(class="form-control", placeholder="child@example.com") }}
-                            <div class="form-text">
-                                Enter {{ child.name }}'s email address. They'll receive an invitation to set their password.
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3 form-check">
-                            {{ form.send_invitation(class="form-check-input", checked=True) }}
+                    <div class="form-check">
+                        {{ form.send_invitation(class="form-check-input", checked=True) }}
+                        <div class="form-check-content">
                             {{ form.send_invitation.label(class="form-check-label") }}
-                            <div class="form-text">
-                                Recommended: They'll get an email right away with setup instructions.
-                            </div>
+                            <span class="form-check-hint">Recommended: They'll get an email right away with setup instructions</span>
                         </div>
-                        
-                        <div class="alert alert-success">
-                            <strong>✓ History Preserved!</strong> All of {{ child.name }}'s wishlist items, received items, and claims will transfer to their new account.
+                    </div>
+                    
+                    <div class="success-box">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <strong>History Preserved!</strong>
+                            All of {{ child.name }}'s wishlist items, received items, and claims will transfer to their new account.
                         </div>
-                        
-                        <div class="d-grid gap-2">
-                            {{ form.submit(class="btn btn-success btn-lg") }}
-                            <a href="{{ url_for('main.user_management') }}" class="btn btn-secondary">Cancel</a>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        {{ form.submit(class="btn btn-success btn-lg") }}
+                        <a href="{{ url_for('main.user_management') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
