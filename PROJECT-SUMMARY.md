@@ -16,7 +16,7 @@ A Flask web app for coordinating family gift-giving. Family members create wishl
 
 ## Database Models
 
-Four models in `app/models.py`:
+Five models in `app/models.py`:
 
 **User** - Authentication and profiles. Fields include email, password_hash, name, is_admin, gift_delivery_email, invite/reset tokens with expiry, archiving fields (is_active, archived_at, archived_by_id, archived_reason), and child promotion fields (promoted_from_child, promoted_at, promoted_by_id). Uses werkzeug password hashing.
 
@@ -165,7 +165,7 @@ gift-exchange/
   requirements.txt     # 12 Python packages
   Procfile             # gunicorn run:app
   .env.example         # Environment variable template
-  redesigned-templates.zip  # Packaged template redesign (not yet applied)
+  redesigned-templates.zip  # Pre-passkey snapshot of UI redesign (already applied)
 ```
 
 ## Environment Variables

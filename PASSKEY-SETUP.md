@@ -7,7 +7,7 @@ Users can now optionally register passkeys (fingerprint, face, or screen lock) a
 ## What Changed
 
 ### New files
-- `app/webauthn.py` - Blueprint with five endpoints for passkey registration, login, and deletion.
+- `app/webauthn.py` - Blueprint with six endpoints for passkey registration, login, deletion, and prompt dismissal.
 
 ### Modified files
 - `requirements.txt` - Added `webauthn==2.7.1`
@@ -18,6 +18,8 @@ Users can now optionally register passkeys (fingerprint, face, or screen lock) a
 - `app/templates/profile.html` - Added passkey management card (add/remove passkeys)
 - `app/templates/register.html` - Added tip about passkey setup
 - `app/templates/dashboard.html` - Added dismissable passkey setup banner for users without passkeys
+- `app/templates/help.html` - Added passkey feature card, FAQ entry, and updated security FAQ
+- `app/templates/help_guide.html` - Added passkeys section with setup/login/management instructions, TOC entry, and FAQ entry
 - `.env.example` - Added WebAuthn env vars
 
 ## Database Migration (Production)
