@@ -34,6 +34,9 @@ class User(UserMixin, db.Model):
     archived_by_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     archived_reason = db.Column(db.Text)
     
+    # Passkey prompt
+    passkey_prompt_dismissed = db.Column(db.Boolean, default=False, nullable=False)
+
     # Child promotion fields
     promoted_from_child = db.Column(db.Boolean, default=False, nullable=False)
     promoted_at = db.Column(db.DateTime)
@@ -103,6 +106,25 @@ class User(UserMixin, db.Model):
     
     def __repr__(self):
         return f'<User {self.email}>'
+
+
+class WebAuthnCredential(db.Model):
+    """Stored WebAuthn/passkey credentials for passwordless login"""
+    __tablename__ = 'webauthn_credentials'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    credential_id = db.Column(db.LargeBinary, nullable=False, unique=True)
+    public_key = db.Column(db.LargeBinary, nullable=False)
+    sign_count = db.Column(db.Integer, nullable=False, default=0)
+    device_name = db.Column(db.String(100), default='My Passkey')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    # Back-reference to User
+    user = db.relationship('User', backref=db.backref('webauthn_credentials', cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<WebAuthnCredential user_id={self.user_id} device={self.device_name}>'
 
 
 class List(db.Model):

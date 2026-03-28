@@ -271,6 +271,85 @@
         margin-bottom: 24px;
     }
     
+    /* ========== Passkey Banner ========== */
+    .passkey-banner {
+        background: var(--color-card);
+        border: 2px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: 24px 28px;
+        margin-bottom: 24px;
+        display: none;
+        animation: fadeInUp 0.4s ease;
+    }
+
+    .passkey-banner-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .passkey-banner-icon {
+        width: 52px;
+        height: 52px;
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .passkey-banner-text {
+        flex: 1;
+    }
+
+    .passkey-banner-text h3 {
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        color: var(--color-text);
+        margin: 0 0 6px 0;
+    }
+
+    .passkey-banner-text p {
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+        margin: 0 0 14px 0;
+        line-height: 1.5;
+    }
+
+    .passkey-banner-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .passkey-banner-actions .btn-passkey-setup {
+        padding: 10px 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .passkey-banner-dismiss {
+        background: none;
+        border: none;
+        color: var(--color-text-muted);
+        font-size: 0.85rem;
+        cursor: pointer;
+        padding: 10px 12px;
+    }
+
+    .passkey-banner-dismiss:hover {
+        color: var(--color-text);
+    }
+
+    .passkey-banner-close {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+    }
+
     /* ========== Responsive ========== */
     @media (max-width: 768px) {
         .welcome-card {
@@ -291,6 +370,19 @@
         
         .family-grid {
             grid-template-columns: 1fr;
+        }
+
+        .passkey-banner-content {
+            flex-direction: column;
+        }
+
+        .passkey-banner-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .passkey-banner-actions .btn-passkey-setup {
+            width: 100%;
         }
     }
 </style>
@@ -322,6 +414,45 @@
         </div>
     </div>
     
+    <!-- Passkey Setup Banner -->
+    {% if not current_user.passkey_prompt_dismissed and not current_user.webauthn_credentials %}
+    <div class="passkey-banner" id="passkeyBanner">
+        <div class="passkey-banner-content">
+            <div class="passkey-banner-icon">
+                <i class="bi bi-fingerprint"></i>
+            </div>
+            <div class="passkey-banner-text">
+                <h3>Sign in faster with a passkey</h3>
+                <p>
+                    No password to remember. No password to steal. Use your fingerprint, face, or screen lock
+                    to sign in instantly. It takes ten seconds to set up and works on all your devices.
+                </p>
+                <div class="passkey-banner-actions">
+                    <a href="{{ url_for('main.profile') }}#passkeySection" class="btn btn-primary btn-passkey-setup">
+                        <i class="bi bi-fingerprint"></i> Set Up Passkey
+                    </a>
+                    <button type="button" class="passkey-banner-dismiss" id="dismissPasskeyBanner">
+                        Not now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    (function() {
+        // Only show if browser supports WebAuthn
+        if (window.PublicKeyCredential) {
+            document.getElementById('passkeyBanner').style.display = 'block';
+        }
+
+        document.getElementById('dismissPasskeyBanner').addEventListener('click', function() {
+            fetch('/webauthn/dismiss-prompt', { method: 'POST', headers: {'Content-Type': 'application/json'} });
+            document.getElementById('passkeyBanner').style.display = 'none';
+        });
+    })();
+    </script>
+    {% endif %}
+
     <!-- Family Members Section -->
     <div class="section-header">
         <h2 class="section-title">

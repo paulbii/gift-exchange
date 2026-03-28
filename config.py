@@ -21,6 +21,11 @@ class Config:
     # App configuration
     APP_NAME = os.environ.get('APP_NAME', 'Power Family Wishlist')
 
+    # WebAuthn / Passkey configuration
+    WEBAUTHN_RP_ID = os.environ.get('WEBAUTHN_RP_ID', 'localhost')
+    WEBAUTHN_RP_NAME = os.environ.get('WEBAUTHN_RP_NAME', 'Power Family Wishlist')
+    WEBAUTHN_ORIGIN = os.environ.get('WEBAUTHN_ORIGIN', 'http://localhost:5000')
+
 
 class DevelopmentConfig(Config):
     """Development configuration"""

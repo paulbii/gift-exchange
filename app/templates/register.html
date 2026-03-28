@@ -243,6 +243,12 @@
                         <i class="bi bi-check-circle"></i> Create My Account
                     </button>
                 </form>
+
+                <div id="passkeyOffer" style="display:none; margin-top: 20px; text-align: center;">
+                    <p style="color: var(--color-text-muted); font-size: 0.9rem;">
+                        Tip: After creating your account, you can set up a passkey from your Profile page to sign in with your fingerprint or face next time.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -272,5 +278,10 @@ togglePassword2.addEventListener('click', function() {
     toggleIcon2.classList.toggle('bi-eye');
     toggleIcon2.classList.toggle('bi-eye-slash');
 });
+
+// Show passkey tip if browser supports WebAuthn
+if (window.PublicKeyCredential) {
+    document.getElementById('passkeyOffer').style.display = 'block';
+}
 </script>
 {% endblock %}

@@ -41,6 +41,9 @@ def create_app(config_name='default'):
     # Register blueprints
     from app.routes import main
     app.register_blueprint(main)
+
+    from app.webauthn import webauthn_bp
+    app.register_blueprint(webauthn_bp)
     
     # Create database tables
     with app.app_context():

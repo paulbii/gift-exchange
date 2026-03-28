@@ -207,19 +207,99 @@
         font-weight: 600;
     }
     
+    /* ========== Passkey List ========== */
+    .passkey-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .passkey-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .passkey-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .passkey-item:first-child {
+        padding-top: 0;
+    }
+
+    .passkey-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .passkey-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--color-bg-alt);
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-primary);
+        font-size: 1.1rem;
+    }
+
+    .passkey-name {
+        font-weight: 600;
+        color: var(--color-text);
+    }
+
+    .passkey-date {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+    }
+
+    .passkey-empty {
+        text-align: center;
+        color: var(--color-text-muted);
+        padding: 24px 0;
+    }
+
+    .passkey-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+    }
+
+    .passkey-error, .passkey-success {
+        font-size: 0.9rem;
+        text-align: center;
+        margin-top: 12px;
+        display: none;
+    }
+
+    .passkey-error { color: #DC3545; }
+    .passkey-success { color: #198754; }
+
     @media (max-width: 576px) {
         .profile-header {
             padding: 32px 24px;
         }
-        
+
         .security-item {
             flex-direction: column;
             align-items: flex-start;
             gap: 12px;
         }
-        
+
         .security-item .btn {
             width: 100%;
+        }
+
+        .passkey-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
         }
     }
 </style>
@@ -310,6 +390,192 @@
                 </div>
             </div>
         </div>
+
+        <!-- Passkeys -->
+        <div class="profile-card" id="passkeySection" style="display:none;">
+            <div class="profile-card-header">
+                <i class="bi bi-fingerprint"></i>
+                <h2>Passkeys</h2>
+            </div>
+            <div class="profile-card-body">
+                <p style="color: var(--color-text-muted); margin-bottom: 16px; font-size: 0.9rem;">
+                    Passkeys let you sign in with your fingerprint, face, or screen lock instead of a password.
+                </p>
+
+                <div id="passkeyList">
+                    {% if current_user.webauthn_credentials %}
+                    <ul class="passkey-list">
+                        {% for cred in current_user.webauthn_credentials %}
+                        <li class="passkey-item" id="passkey-{{ cred.id }}">
+                            <div class="passkey-info">
+                                <div class="passkey-icon">
+                                    <i class="bi bi-fingerprint"></i>
+                                </div>
+                                <div>
+                                    <div class="passkey-name">{{ cred.device_name }}</div>
+                                    <div class="passkey-date">Added {{ cred.created_at.strftime('%b %d, %Y') }}</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deletePasskey({{ cred.id }}, '{{ cred.device_name }}')">
+                                <i class="bi bi-trash"></i> Remove
+                            </button>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="passkey-empty" id="passkeyEmpty">
+                        <i class="bi bi-fingerprint" style="font-size: 2rem; display: block; margin-bottom: 8px; opacity: 0.3;"></i>
+                        No passkeys registered yet.
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="passkey-actions">
+                    <button type="button" class="btn btn-primary" id="addPasskeyBtn">
+                        <i class="bi bi-plus-lg"></i> Add Passkey
+                    </button>
+                </div>
+                <div class="passkey-error" id="passkeyError"></div>
+                <div class="passkey-success" id="passkeySuccess"></div>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+(function() {
+    // Only show passkey section if browser supports WebAuthn
+    if (window.PublicKeyCredential) {
+        document.getElementById('passkeySection').style.display = 'block';
+    }
+
+    const addBtn = document.getElementById('addPasskeyBtn');
+    const errorEl = document.getElementById('passkeyError');
+    const successEl = document.getElementById('passkeySuccess');
+
+    function showError(msg) {
+        errorEl.textContent = msg;
+        errorEl.style.display = 'block';
+        successEl.style.display = 'none';
+    }
+
+    function showSuccess(msg) {
+        successEl.textContent = msg;
+        successEl.style.display = 'block';
+        errorEl.style.display = 'none';
+    }
+
+    function bufferToBase64url(buffer) {
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function base64urlToBuffer(base64url) {
+        const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+        const pad = base64.length % 4;
+        const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
+        const binary = atob(padded);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes.buffer;
+    }
+
+    addBtn.addEventListener('click', async function() {
+        errorEl.style.display = 'none';
+        successEl.style.display = 'none';
+        addBtn.disabled = true;
+        addBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Waiting...';
+
+        try {
+            // 1. Get registration options
+            const optRes = await fetch('/webauthn/register/options', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+            });
+            if (!optRes.ok) {
+                const err = await optRes.json();
+                throw new Error(err.error || 'Failed to get registration options.');
+            }
+
+            const optData = await optRes.json();
+            const publicKey = JSON.parse(optData.publicKey);
+
+            // Convert fields from base64url to ArrayBuffer
+            publicKey.challenge = base64urlToBuffer(publicKey.challenge);
+            publicKey.user.id = base64urlToBuffer(publicKey.user.id);
+            if (publicKey.excludeCredentials) {
+                publicKey.excludeCredentials = publicKey.excludeCredentials.map(function(c) {
+                    return { ...c, id: base64urlToBuffer(c.id) };
+                });
+            }
+
+            // 2. Create credential via browser
+            const cred = await navigator.credentials.create({ publicKey: publicKey });
+
+            // 3. Prompt for a name
+            const deviceName = prompt('Name this passkey (e.g., "iPhone", "MacBook")', 'My Passkey') || 'My Passkey';
+
+            // 4. Send to server
+            const credential = {
+                id: cred.id,
+                rawId: bufferToBase64url(cred.rawId),
+                type: cred.type,
+                response: {
+                    attestationObject: bufferToBase64url(cred.response.attestationObject),
+                    clientDataJSON: bufferToBase64url(cred.response.clientDataJSON),
+                }
+            };
+
+            const verifyRes = await fetch('/webauthn/register/verify', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ credential: credential, device_name: deviceName })
+            });
+
+            const verifyData = await verifyRes.json();
+            if (verifyRes.ok && verifyData.success) {
+                showSuccess('Passkey added! Reloading...');
+                setTimeout(function() { window.location.reload(); }, 800);
+            } else {
+                throw new Error(verifyData.error || 'Registration failed.');
+            }
+        } catch (e) {
+            if (e.name === 'NotAllowedError') {
+                showError('Passkey creation was cancelled.');
+            } else {
+                showError(e.message || 'Failed to add passkey.');
+            }
+            addBtn.disabled = false;
+            addBtn.innerHTML = '<i class="bi bi-plus-lg"></i> Add Passkey';
+        }
+    });
+
+    window.deletePasskey = async function(credId, name) {
+        if (!confirm('Remove passkey "' + name + '"? You can always add it again later.')) return;
+
+        try {
+            const res = await fetch('/webauthn/delete/' + credId, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                const el = document.getElementById('passkey-' + credId);
+                if (el) el.remove();
+                showSuccess('Passkey removed.');
+            } else {
+                throw new Error(data.error || 'Failed to remove passkey.');
+            }
+        } catch (e) {
+            showError(e.message);
+        }
+    };
+})();
+</script>
 {% endblock %}
