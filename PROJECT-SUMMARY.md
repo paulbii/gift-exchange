@@ -11,6 +11,7 @@ A Flask web app for coordinating family gift-giving. Family members create wishl
 - **Frontend:** Bootstrap 5, Jinja2 templates
 - **Email:** SendGrid HTTP API (not Flask-Mail SMTP)
 - **Image Scraping:** requests + BeautifulSoup4 (og:image, twitter:image, itemprop)
+- **Auth:** Passkeys via webauthn==2.7.1 (optional, password fallback always available)
 - **Hosting:** Railway (auto-deploys from GitHub, Procfile runs gunicorn)
 
 ## Database Models
@@ -25,10 +26,13 @@ Four models in `app/models.py`:
 
 **Claim** - Tracks who claimed which item. Unique constraint on (item_id, claimed_by_id). One user can only claim an item once.
 
+**WebAuthnCredential** - Passkey credentials for passwordless login. Fields: credential_id (LargeBinary, unique), public_key (LargeBinary), sign_count, device_name, created_at. Belongs to User via user_id FK with cascade delete.
+
 ## Key Relationships
 
 - User has one owned_list and can manage multiple child lists
 - User has many claims
+- User has many webauthn_credentials (passkeys)
 - List has many items (ordered by position)
 - Item has many claims
 - Child profiles: a User whose owned_list has a non-null managed_by_id
@@ -77,6 +81,14 @@ Four models in `app/models.py`:
 ### Profile (login required)
 - `/profile` - Edit name and gift delivery email
 - `/change-password` - Change password
+
+### Passkey / WebAuthn Routes (app/webauthn.py)
+- `/webauthn/register/options` (POST, login required) - Get registration challenge
+- `/webauthn/register/verify` (POST, login required) - Verify and store new passkey
+- `/webauthn/login/options` (POST, public) - Get authentication challenge
+- `/webauthn/login/verify` (POST, public) - Verify passkey and log in
+- `/webauthn/delete/<id>` (POST, login required) - Remove a passkey
+- `/webauthn/dismiss-prompt` (POST, login required) - Dismiss dashboard passkey banner
 
 ## Templates
 
@@ -143,6 +155,7 @@ gift-exchange/
     __init__.py        # App factory, extension init, blueprint registration
     models.py          # User, List, Item, Claim models
     routes.py          # All route handlers (~1020 lines)
+    webauthn.py        # Passkey registration, login, management (6 endpoints)
     forms.py           # 12 WTForms classes
     email.py           # SendGrid email functions
     templates/         # 17 Jinja2 templates + 3 admin templates
@@ -157,11 +170,12 @@ gift-exchange/
 
 ## Environment Variables
 
-Required for production: FLASK_ENV, SECRET_KEY, DATABASE_URL (auto-set by Railway), MAIL_SERVER, MAIL_PORT, MAIL_USE_TLS, MAIL_USERNAME, MAIL_PASSWORD (SendGrid API key), MAIL_DEFAULT_SENDER. Optional: SENDGRID_API_KEY, APP_NAME.
+Required for production: FLASK_ENV, SECRET_KEY, DATABASE_URL (auto-set by Railway), MAIL_SERVER, MAIL_PORT, MAIL_USE_TLS, MAIL_USERNAME, MAIL_PASSWORD (SendGrid API key), MAIL_DEFAULT_SENDER, WEBAUTHN_RP_ID (bare domain), WEBAUTHN_RP_NAME, WEBAUTHN_ORIGIN (full https URL). Optional: SENDGRID_API_KEY, APP_NAME.
 
 ## Notes
 
-- The `redesigned-templates.zip` file exists in the repo root but has not been applied to the templates directory.
+- The `redesigned-templates.zip` in the repo root is a pre-passkey snapshot of the UI redesign. The redesign has been applied. The only differences between the zip and current templates are the passkey additions to login, register, dashboard, and profile.
 - No Flask-Migrate. Schema changes require manual SQL.
 - `datetime.utcnow()` used throughout (no timezone awareness).
 - The app name in code/emails is "Power Family Wishlist" (configurable via APP_NAME env var).
+- Passkeys are optional. Password login always works as a fallback. Users manage passkeys from their Profile page. A dismissable dashboard banner prompts existing users to set up passkeys.
