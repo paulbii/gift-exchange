@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from datetime import datetime, timedelta
+import secrets
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
@@ -142,13 +143,14 @@ def register(token):
         user.set_password(form.password.data)
         user.invite_token = None
         user.invite_token_expires = None
-        
-        # Create user's personal list
-        user_list = List(
-            owner_id=user.id,
-            name=f"{user.name}'s List"
-        )
-        db.session.add(user_list)
+
+        # Create user's personal list (promoted children already have one)
+        if not user.owned_list:
+            user_list = List(
+                owner_id=user.id,
+                name=f"{user.name}'s List"
+            )
+            db.session.add(user_list)
         db.session.commit()
         
         login_user(user)
@@ -579,6 +581,7 @@ def restore_item(item_id):
             title=form.title.data,
             description=form.description.data,
             url=form.url.data,
+            image_url=form.image_url.data,
             price=form.price.data,
             max_claims=max_claims_value,
             position=max_position + 1,
@@ -714,7 +717,7 @@ def invite_user():
             name=form.name.data,  # Pre-populate with invited name (they can change it during registration)
             invited_by_id=current_user.id
         )
-        user.set_password('temporary')  # Will be changed during registration
+        user.set_password(secrets.token_urlsafe(32))  # Unguessable placeholder; replaced during registration
         token = user.generate_invite_token()
         
         db.session.add(user)
@@ -785,7 +788,7 @@ def add_child():
             email=child_email,
             name=form.name.data
         )
-        child_user.set_password('placeholder')  # Will be changed when graduated
+        child_user.set_password(secrets.token_urlsafe(32))  # Unguessable placeholder; replaced when promoted
         
         db.session.add(child_user)
         db.session.flush()  # Get the child_user.id
@@ -898,8 +901,14 @@ def delete_user(user_id):
         return redirect(url_for('main.dashboard'))
     
     user = User.query.get_or_404(user_id)
+
+    # Users must be archived before they can be permanently deleted
+    if user.is_active:
+        flash('User must be archived before they can be deleted.', 'danger')
+        return redirect(url_for('main.user_management'))
+
     form = DeleteUserForm()
-    
+
     if form.validate_on_submit():
         # Verify admin password
         if not current_user.check_password(form.admin_password.data):
@@ -1008,8 +1017,7 @@ def promote_child(child_id):
         
         # Send invitation email if requested
         if form.send_invitation.data:
-            invite_url = url_for('main.register', token=token, _external=True)
-            send_invite_email(child.email, child.name, invite_url)
+            send_invite_email(child, token, child.name)
             flash(f'{child.name} has been promoted! Invitation email sent to {email}.', 'success')
         else:
             flash(f'{child.name} has been promoted! Share this invitation link with them.', 'success')
