@@ -431,3 +431,24 @@ def test_unclaim_from_my_claims_returns_there(app, client):
     resp = client.post(f'/unclaim/{item.id}', data={'next': 'claims'})
     assert resp.headers['Location'].endswith('/my-claims')
     assert Claim.query.count() == 0
+
+
+# ==================== DEPLOYMENT ====================
+
+@pytest.mark.parametrize('given,expected', [
+    ('postgres://u:p@host:5432/db', 'postgresql+psycopg2://u:p@host:5432/db'),
+    ('postgresql://u:p@host:5432/db', 'postgresql+psycopg2://u:p@host:5432/db'),
+    ('postgresql+psycopg2://u:p@host/db', 'postgresql+psycopg2://u:p@host/db'),
+    ('sqlite:///dev.db', 'sqlite:///dev.db'),
+    (None, None),
+])
+def test_postgres_url_names_the_installed_driver(given, expected):
+    from config import postgres_url
+    assert postgres_url(given) == expected
+
+
+def test_production_database_url_uses_psycopg2():
+    """The driver SQLAlchemy picks must be the one requirements.txt installs."""
+    from sqlalchemy.engine import make_url
+    from config import postgres_url
+    assert make_url(postgres_url('postgres://u:p@host/db')).get_dialect().driver == 'psycopg2'

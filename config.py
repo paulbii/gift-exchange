@@ -5,6 +5,21 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, '.env'))
 
 
+def postgres_url(url):
+    """Normalize a Postgres URL for SQLAlchemy.
+
+    Railway/Render hand out postgres://, which SQLAlchemy rejects. We also name
+    the psycopg2 driver explicitly: it is the one in requirements.txt, and
+    SQLAlchemy 2.1 changed the default for bare postgresql:// to psycopg (v3).
+    """
+    if not url:
+        return url
+    for prefix in ('postgres://', 'postgresql://'):
+        if url.startswith(prefix):
+            return 'postgresql+psycopg2://' + url[len(prefix):]
+    return url
+
+
 class Config:
     """Base configuration"""
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
@@ -45,11 +60,7 @@ class ProductionConfig(Config):
     DEBUG = False
     SESSION_COOKIE_SECURE = True
     REMEMBER_COOKIE_SECURE = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
-    
-    # Fix for Railway/Render PostgreSQL URLs (they use postgres:// but SQLAlchemy needs postgresql://)
-    if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
-        SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace('postgres://', 'postgresql://', 1)
+    SQLALCHEMY_DATABASE_URI = postgres_url(os.environ.get('DATABASE_URL'))
 
 
 config = {
