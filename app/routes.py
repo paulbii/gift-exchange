@@ -1,16 +1,15 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, current_user, login_required
-from datetime import datetime, timedelta
 import ipaddress
 import secrets
 import socket
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
-from app import db
-from app.models import User, List, Item, Claim
+from app import db, limiter
+from app.models import User, List, Item, Claim, utcnow
 from app.forms import (LoginForm, RegistrationForm, InviteUserForm, PasswordResetRequestForm,
-                       PasswordResetForm, ProfileForm, ChangeEmailForm, ChangePasswordForm,
+                       PasswordResetForm, ProfileForm, ChangePasswordForm,
                        ItemForm, AddChildForm, PromoteChildForm, ArchiveUserForm, DeleteUserForm)
 from app.email import send_invite_email, send_password_reset_email, send_item_deleted_notification
 
@@ -135,6 +134,7 @@ def index():
 
 
 @main.route('/login', methods=['GET', 'POST'])
+@limiter.limit('10 per minute', methods=['POST'])
 def login():
     """User login"""
     if current_user.is_authenticated:
@@ -173,7 +173,7 @@ def register(token):
         flash('Invalid or expired invitation link.', 'danger')
         return redirect(url_for('main.index'))
     
-    if user.invite_token_expires < datetime.utcnow():
+    if user.invite_token_expires < utcnow():
         flash('This invitation has expired. Please request a new one.', 'danger')
         return redirect(url_for('main.index'))
     
@@ -206,6 +206,7 @@ def register(token):
 
 
 @main.route('/forgot-password', methods=['GET', 'POST'])
+@limiter.limit('5 per minute', methods=['POST'])
 def forgot_password():
     """Request password reset"""
     if current_user.is_authenticated:
@@ -233,7 +234,7 @@ def reset_password(token):
     
     user = User.query.filter_by(password_reset_token=token).first()
     
-    if not user or user.password_reset_expires < datetime.utcnow():
+    if not user or user.password_reset_expires < utcnow():
         flash('Invalid or expired password reset link.', 'danger')
         return redirect(url_for('main.forgot_password'))
     
@@ -521,7 +522,7 @@ def mark_received(item_id):
         flash('You do not have permission to mark this item as received.', 'danger')
         return redirect(url_for('main.dashboard'))
     
-    item.received_at = datetime.utcnow()
+    item.received_at = utcnow()
     db.session.commit()
     
     flash(f'"{item.title}" marked as received!', 'success')
@@ -740,9 +741,10 @@ def invite_user():
         invite_url = url_for('main.register', token=token, _external=True)
         
         # Send invitation email
-        send_invite_email(user, token, form.name.data)
-        
-        flash(f'Invitation sent to {form.email.data}! You can also share the link below.', 'success')
+        if send_invite_email(user, token, form.name.data):
+            flash(f'Invitation sent to {form.email.data}! You can also share the link below.', 'success')
+        else:
+            flash(f"{form.name.data} was added, but the invitation email couldn't be sent. Copy the link below and send it yourself.", 'warning')
         # Don't redirect - stay on page to show the invite link
     
     return render_template('invite_user.html', form=form, invite_url=invite_url)
@@ -795,7 +797,7 @@ def add_child():
     
     if form.validate_on_submit():
         # Create a dummy email for the child (will be changed when graduated)
-        child_email = f"child_{current_user.id}_{datetime.utcnow().timestamp()}@placeholder.local"
+        child_email = f"child_{current_user.id}_{utcnow().timestamp()}@placeholder.local"
         
         child_user = User(
             email=child_email,
@@ -844,7 +846,7 @@ def user_management():
                          active_users=active_users,
                          archived_users=archived_users,
                          delete_forms=delete_forms,
-                         now=datetime.utcnow())
+                         now=utcnow())
 
 
 @main.route('/admin/users/<int:user_id>/resend-invite', methods=['POST'])
@@ -863,9 +865,10 @@ def resend_invite(user_id):
     
     token = user.generate_invite_token()
     db.session.commit()
-    send_invite_email(user, token, user.name)
-    
-    flash(f'New invitation sent to {user.email}. The link is also shown below.', 'success')
+    if send_invite_email(user, token, user.name):
+        flash(f'New invitation sent to {user.email}. The link is also shown below.', 'success')
+    else:
+        flash(f"A new link was created, but the email to {user.email} couldn't be sent. Copy the link below and send it yourself.", 'warning')
     return redirect(url_for('main.user_management'))
 
 
@@ -1045,7 +1048,7 @@ def promote_child(child_id):
         # Update child to full account
         child.email = email
         child.promoted_from_child = True
-        child.promoted_at = datetime.utcnow()
+        child.promoted_at = utcnow()
         child.promoted_by_id = current_user.id
         
         # Remove parent management
@@ -1058,9 +1061,10 @@ def promote_child(child_id):
         db.session.commit()
         
         # Send invitation email if requested
-        if form.send_invitation.data:
-            send_invite_email(child, token, child.name)
+        if form.send_invitation.data and send_invite_email(child, token, child.name):
             flash(f'{child.name} has been promoted! Invitation email sent to {email}.', 'success')
+        elif form.send_invitation.data:
+            flash(f"{child.name} has been promoted, but the invitation email couldn't be sent. Copy their link below and send it yourself.", 'warning')
         else:
             flash(f'{child.name} has been promoted! Their invitation link is shown below to share.', 'success')
         

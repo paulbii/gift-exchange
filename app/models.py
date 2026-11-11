@@ -1,8 +1,13 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 import secrets
+
+
+def utcnow():
+    """Current UTC time as a naive datetime (how every timestamp column stores it)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class User(UserMixin, db.Model):
@@ -25,8 +30,8 @@ class User(UserMixin, db.Model):
     email_verification_expires = db.Column(db.DateTime)
     
     invited_by_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=utcnow, onupdate=utcnow, nullable=False)
     
     # Archiving fields
     is_active = db.Column(db.Boolean, default=True, nullable=False, index=True)
@@ -61,13 +66,13 @@ class User(UserMixin, db.Model):
     def generate_invite_token(self):
         """Generate secure invite token"""
         self.invite_token = secrets.token_urlsafe(32)
-        self.invite_token_expires = datetime.utcnow() + timedelta(hours=48)
+        self.invite_token_expires = utcnow() + timedelta(hours=48)
         return self.invite_token
     
     def generate_password_reset_token(self):
         """Generate secure password reset token"""
         self.password_reset_token = secrets.token_urlsafe(32)
-        self.password_reset_expires = datetime.utcnow() + timedelta(hours=24)
+        self.password_reset_expires = utcnow() + timedelta(hours=24)
         return self.password_reset_token
     
     def get_delivery_email(self):
@@ -93,7 +98,7 @@ class User(UserMixin, db.Model):
     def archive(self, by_user, reason=""):
         """Archive this user"""
         self.is_active = False
-        self.archived_at = datetime.utcnow()
+        self.archived_at = utcnow()
         self.archived_by_id = by_user.id
         self.archived_reason = reason
     
@@ -118,7 +123,7 @@ class WebAuthnCredential(db.Model):
     public_key = db.Column(db.LargeBinary, nullable=False)
     sign_count = db.Column(db.Integer, nullable=False, default=0)
     device_name = db.Column(db.String(100), default='My Passkey')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
 
     # Back-reference to User
     user = db.relationship('User', backref=db.backref('webauthn_credentials', cascade='all, delete-orphan'))
@@ -135,8 +140,8 @@ class List(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     managed_by_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # For parent-managed child lists
     name = db.Column(db.String(200), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=utcnow, onupdate=utcnow, nullable=False)
     
     # Relationships
     items = db.relationship('Item', backref='list', cascade='all, delete-orphan', order_by='Item.position')
@@ -161,8 +166,8 @@ class Item(db.Model):
     position = db.Column(db.Integer, nullable=False)  # For priority ordering
     received_at = db.Column(db.DateTime)  # NULL = active, has date = received/archived
     created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=utcnow, onupdate=utcnow, nullable=False)
     
     # Relationships
     claims = db.relationship('Claim', backref='item', cascade='all, delete-orphan')
@@ -202,8 +207,8 @@ class Claim(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
     claimed_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    claimed_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    claimed_at = db.Column(db.DateTime, default=utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
     
     # Unique constraint: user can only claim an item once
     __table_args__ = (
@@ -213,6 +218,3 @@ class Claim(db.Model):
     def __repr__(self):
         return f'<Claim item_id={self.item_id} by user_id={self.claimed_by_id}>'
 
-
-# Import timedelta at the top after datetime
-from datetime import timedelta

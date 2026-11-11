@@ -18,7 +18,7 @@ os.environ['FLASK_ENV'] = 'development'
 import pytest
 
 from app import create_app, db
-from app.models import User, List, Item, Claim
+from app.models import User, List, Item, Claim, utcnow
 
 
 @pytest.fixture
@@ -184,7 +184,7 @@ def test_restore_item_preserves_image_url(app, client):
     admin = make_admin()
     item = Item(list_id=admin.owned_list.id, title='Coffee roaster', position=1,
                 image_url='https://example.com/roaster.jpg',
-                received_at=datetime.utcnow(), created_by_id=admin.id)
+                received_at=utcnow(), created_by_id=admin.id)
     db.session.add(item)
     db.session.commit()
 

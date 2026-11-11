@@ -13,7 +13,7 @@ import pytest
 from sqlalchemy import event
 
 from app import create_app, db
-from app.models import User, List, Item, Claim
+from app.models import User, List, Item, Claim, utcnow
 import app.routes as routes
 
 
@@ -56,7 +56,7 @@ def make_user(email, name, password='password1', admin=False, managed_by=None):
 def make_item(owner, title, position, created_by=None, received=False, **kw):
     item = Item(list_id=owner.owned_list.id, title=title, position=position,
                 created_by_id=(created_by or owner).id,
-                received_at=datetime.utcnow() if received else None, **kw)
+                received_at=utcnow() if received else None, **kw)
     db.session.add(item)
     db.session.commit()
     return item
@@ -339,7 +339,7 @@ def _pending(email='sue@example.com', name='Sue', expired=False):
     user.set_password('unguessable-placeholder')
     user.generate_invite_token()
     if expired:
-        user.invite_token_expires = datetime.utcnow() - timedelta(hours=1)
+        user.invite_token_expires = utcnow() - timedelta(hours=1)
     db.session.add(user)
     db.session.commit()
     return user
@@ -356,7 +356,7 @@ def test_resend_invite_issues_fresh_token_and_emails(app, client, monkeypatch):
     resp = client.post(f'/admin/users/{sue.id}/resend-invite', follow_redirects=True)
     db.session.expire_all()
     assert sue.invite_token != old_token
-    assert sue.invite_token_expires > datetime.utcnow()
+    assert sue.invite_token_expires > utcnow()
     assert sent == {'email': 'sue@example.com', 'token': sue.invite_token}
     assert f'/register/{sue.invite_token}'.encode() in resp.data  # link shown to admin
 

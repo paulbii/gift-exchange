@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}{{ heading }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-card {
+        max-width: 560px;
+        margin: 40px auto;
+        text-align: center;
+        padding: 56px 32px;
+        background: var(--color-card);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .error-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 24px;
+        background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-alt) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .error-icon i {
+        font-size: 48px;
+        color: var(--color-accent);
+    }
+
+    .error-card h1 {
+        font-family: var(--font-display);
+        font-size: 1.9rem;
+        margin-bottom: 12px;
+    }
+
+    .error-card p {
+        color: var(--color-text-muted);
+        margin-bottom: 28px;
+    }
+
+    .error-actions {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .error-code {
+        margin-top: 28px;
+        margin-bottom: 0;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="error-card">
+        <div class="error-icon">
+            <i class="bi {{ icon }}"></i>
+        </div>
+        <h1>{{ heading }}</h1>
+        <p>{{ message }}</p>
+        <div class="error-actions">
+            <a href="javascript:history.back()" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Go Back
+            </a>
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                <i class="bi bi-house-door-fill"></i> Home
+            </a>
+        </div>
+        <p class="error-code">Error {{ status }}</p>
+    </div>
+</div>
+{% endblock %}

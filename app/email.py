@@ -112,7 +112,7 @@ Happy gift giving!
 </div>
 """
     
-    send_email(subject, user.email, text_body, html_body)
+    return send_email(subject, user.email, text_body, html_body)
 
 
 def send_password_reset_email(user, token):
@@ -151,7 +151,7 @@ If you didn't request this, please ignore this email.
 </div>
 """
     
-    send_email(subject, user.email, text_body, html_body)
+    return send_email(subject, user.email, text_body, html_body)
 
 
 def send_item_deleted_notification(item):

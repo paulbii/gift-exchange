@@ -128,7 +128,7 @@ Railway auto-deploys
 ## Testing After Deployment:
 
 ### Test 1: Access User Management
-1. Log in as admin (paul@love2tap.com)
+1. Log in as the admin account
 2. Click **"Users"** in navbar
 3. Should see User Management dashboard
 4. Should see all active users listed

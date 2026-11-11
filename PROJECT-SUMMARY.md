@@ -6,7 +6,7 @@ A Flask web app for coordinating family gift-giving. Family members create wishl
 
 ## Tech Stack
 
-- **Backend:** Flask 3.0 (Python), Flask-SQLAlchemy, Flask-Login, Flask-WTF
+- **Backend:** Flask 3.0 (Python 3.12), Flask-SQLAlchemy, Flask-Login, Flask-WTF (CSRF protection app-wide), Flask-Limiter (login throttling)
 - **Database:** PostgreSQL (production via Railway), SQLite (local dev)
 - **Frontend:** Bootstrap 5, Jinja2 templates
 - **Email:** SendGrid HTTP API (not Flask-Mail SMTP)
@@ -41,10 +41,10 @@ Five models in `app/models.py`:
 
 ### Public Routes
 - `/` - Landing page (redirects to dashboard if logged in)
-- `/login` - Login (blocks archived users)
-- `/logout` - Logout
+- `/login` - Login (blocks archived users; 10 attempts per minute per visitor)
+- `/logout` - Logout (POST)
 - `/register/<token>` - Complete registration from invite link (48hr expiry)
-- `/forgot-password` - Request password reset
+- `/forgot-password` - Request password reset (5 per minute per visitor)
 - `/reset-password/<token>` - Reset password (24hr expiry)
 - `/help` - Public help page
 
@@ -61,16 +61,17 @@ Five models in `app/models.py`:
 - `/item/delete/<item_id>` - Delete item (notifies claimers via email)
 - `/item/mark-received/<item_id>` - Mark as received (soft archive)
 - `/item/restore/<item_id>` - Restore received item (creates a copy)
-- `/item/move/<item_id>/<direction>` - Reorder (up/down position swap)
-- `/fetch-product-image` - JSON API endpoint for image fetching
+- `/item/move/<item_id>/<direction>` - Reorder (POST; up/down swap among active items)
 
 ### Claim Management (login required)
 - `/claim/<item_id>` - Claim an item (POST)
 - `/unclaim/<item_id>` - Unclaim an item (POST)
+- `/my-claims` - Everything you have claimed, grouped by person
 
 ### Admin Routes (admin only)
 - `/admin/invite` - Invite new family member (creates user + sends email)
-- `/admin/users` - User management dashboard
+- `/admin/users` - User management dashboard (shows pending/expired invites with their links)
+- `/admin/users/<id>/resend-invite` - Issue a fresh invitation link and email (POST)
 - `/admin/users/<id>/archive` - Archive a user (soft delete, reversible)
 - `/admin/users/<id>/restore` - Restore archived user
 - `/admin/users/<id>/delete` - Permanent delete (requires admin password + email confirmation)
@@ -92,7 +93,7 @@ Five models in `app/models.py`:
 
 ## Templates
 
-17 templates in `app/templates/`:
+19 templates in `app/templates/`:
 
 - `base.html` - Layout with navbar (admin sees "Users" and "Invite" links)
 - `index.html` - Landing page
@@ -105,6 +106,8 @@ Five models in `app/models.py`:
 - `profile.html`, `change_password.html`
 - `add_child.html` - Add child profile form
 - `help.html`, `help_guide.html`
+- `my_claims.html` - Your claimed gifts
+- `error.html` - Branded 404 / 500 / expired-page / too-many-attempts page
 
 3 admin templates in `app/templates/admin/`:
 
@@ -114,7 +117,7 @@ Five models in `app/models.py`:
 
 ## Email System (app/email.py)
 
-Uses SendGrid HTTP API directly (not Flask-Mail SMTP). Three email types:
+Uses SendGrid HTTP API directly. Send functions return True/False so routes can tell the admin when an email did not go out. Three email types:
 
 1. **Invite email** - Sent when admin invites a new member. Contains setup link.
 2. **Password reset email** - Sent on forgot-password request.
@@ -124,11 +127,11 @@ API key comes from SENDGRID_API_KEY or MAIL_PASSWORD env var. Sender from MAIL_D
 
 ## Forms (app/forms.py)
 
-12 WTForms classes: LoginForm, RegistrationForm, InviteUserForm (validates email uniqueness), PasswordResetRequestForm, PasswordResetForm, ProfileForm, ChangeEmailForm, ChangePasswordForm, ItemForm (with allow_multiple toggle and image_url), AddChildForm, PromoteChildForm, ArchiveUserForm, DeleteUserForm.
+11 WTForms classes: LoginForm, RegistrationForm, InviteUserForm (validates email uniqueness), PasswordResetRequestForm, PasswordResetForm, ProfileForm, ChangePasswordForm, ItemForm (with allow_multiple toggle and image_url), AddChildForm, PromoteChildForm, ArchiveUserForm, DeleteUserForm.
 
 ## Image Auto-Fetch Feature
 
-When adding/editing items with a product URL, the backend fetches the page and extracts images from og:image, twitter:image, or itemprop="image" meta tags. Follows redirects (handles Amazon sponsored links). 15-second timeout. Silent failure. Manual image URL override available. Images display at 200x200px with rounded corners and onerror hiding.
+When adding/editing items with a product URL, the backend fetches the page and extracts images from og:image, twitter:image, or itemprop="image" meta tags. Follows redirects (handles Amazon sponsored links), refusing private/internal addresses at every hop. 8-second timeout per hop. Silent failure. Manual image URL override available. Images display at 200x200px with rounded corners and onerror hiding.
 
 ## User Management System
 
@@ -141,11 +144,11 @@ Safety guards: cannot archive last admin, cannot archive parent with active chil
 
 ## Configuration (config.py)
 
-Base Config loads from .env file. DevelopmentConfig uses SQLite (dev.db). ProductionConfig uses DATABASE_URL from environment (fixes postgres:// to postgresql:// for Railway). App factory pattern in `app/__init__.py`.
+Base Config loads from .env file. DevelopmentConfig uses SQLite (dev.db). ProductionConfig uses DATABASE_URL from environment (rewritten to `postgresql+psycopg2://`), requires SECRET_KEY, and sets Secure cookies. Rate limiting is off in development. App factory pattern in `app/__init__.py`, which also registers the error pages and retries the startup database call a few times.
 
 ## Deployment
 
-Railway auto-deploys from GitHub. Procfile: `web: gunicorn run:app`. Database migrations are manual SQL ALTER TABLE statements (no Flask-Migrate). Two migration sets documented: user management fields and image_url column.
+Railway auto-deploys from GitHub. Procfile: `web: gunicorn run:app`. `runtime.txt` pins Python 3.12 (minor version only; Railway's builder rejects old exact patch pins). `requirements.txt` is generated from `requirements.in` with every package pinned: `uv pip compile requirements.in -o requirements.txt --python-version 3.12`. Database migrations are manual SQL ALTER TABLE statements (no Flask-Migrate). Two migration sets documented: user management fields and image_url column.
 
 ## File Structure
 
@@ -156,26 +159,28 @@ gift-exchange/
     models.py          # User, List, Item, Claim models
     routes.py          # All route handlers (~1020 lines)
     webauthn.py        # Passkey registration, login, management (6 endpoints)
-    forms.py           # 12 WTForms classes
+    forms.py           # 11 WTForms classes
     email.py           # SendGrid email functions
-    templates/         # 17 Jinja2 templates + 3 admin templates
+    templates/         # 19 Jinja2 templates + 3 admin templates
   config.py            # Dev/Prod config classes
   run.py               # Entry point, shell context
   create_admin.py      # CLI script for first admin setup
-  requirements.txt     # 12 Python packages
+  requirements.in      # Direct dependencies (edit this one)
+  requirements.txt     # Generated, fully pinned
+  runtime.txt          # Python version for Railway
+  tests/               # pytest suite (./venv/bin/python -m pytest tests/)
+  fix_placeholder_passwords.py  # One-off prod cleanup (run 2026-11-11, found nothing)
   Procfile             # gunicorn run:app
   .env.example         # Environment variable template
-  redesigned-templates.zip  # Pre-passkey snapshot of UI redesign (already applied)
 ```
 
 ## Environment Variables
 
-Required for production: FLASK_ENV, SECRET_KEY, DATABASE_URL (auto-set by Railway), MAIL_SERVER, MAIL_PORT, MAIL_USE_TLS, MAIL_USERNAME, MAIL_PASSWORD (SendGrid API key), MAIL_DEFAULT_SENDER, WEBAUTHN_RP_ID (bare domain), WEBAUTHN_RP_NAME, WEBAUTHN_ORIGIN (full https URL). Optional: SENDGRID_API_KEY, APP_NAME.
+Required for production: FLASK_ENV, SECRET_KEY (the app will not start without it), DATABASE_URL (auto-set by Railway), SENDGRID_API_KEY or MAIL_PASSWORD (the SendGrid API key), MAIL_DEFAULT_SENDER, WEBAUTHN_RP_ID (bare domain), WEBAUTHN_RP_NAME, WEBAUTHN_ORIGIN (full https URL). Optional: APP_NAME. The other MAIL_* variables are leftovers from Flask-Mail and are no longer read.
 
 ## Notes
 
-- The `redesigned-templates.zip` in the repo root is a pre-passkey snapshot of the UI redesign. The redesign has been applied. The only differences between the zip and current templates are the passkey additions to login, register, dashboard, and profile.
 - No Flask-Migrate. Schema changes require manual SQL.
-- `datetime.utcnow()` used throughout (no timezone awareness).
+- Timestamps are naive UTC, via the `utcnow()` helper in `app/models.py`.
 - The app name in code/emails is "Power Family Wishlist" (configurable via APP_NAME env var).
 - Passkeys are optional. Password login always works as a fallback. Users manage passkeys from their Profile page. A dismissable dashboard banner prompts existing users to set up passkeys.

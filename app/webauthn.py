@@ -31,7 +31,7 @@ from webauthn.helpers.structs import (
     AuthenticatorAssertionResponse,
 )
 from webauthn.helpers import base64url_to_bytes
-from app import db
+from app import db, limiter
 from app.models import User, WebAuthnCredential
 
 webauthn_bp = Blueprint('webauthn', __name__, url_prefix='/webauthn')
@@ -178,6 +178,7 @@ def login_options():
 
 
 @webauthn_bp.route('/login/verify', methods=['POST'])
+@limiter.limit('10 per minute')
 def login_verify():
     """Verify the authentication response and log the user in."""
     data = request.get_json()

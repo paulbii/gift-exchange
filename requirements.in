@@ -1,0 +1,19 @@
+# Direct dependencies. requirements.txt is generated from this file so that
+# every package (including indirect ones) is pinned and builds are repeatable:
+#
+#   uv pip compile requirements.in -o requirements.txt --python-version 3.12
+#
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+SQLAlchemy==2.0.50
+Flask-Login==0.6.3
+Flask-WTF==1.2.1
+Flask-Limiter==4.1.1
+WTForms==3.1.1
+email-validator==2.1.0
+python-dotenv==1.0.0
+psycopg2-binary==2.9.9
+gunicorn==21.2.0
+requests==2.31.0
+beautifulsoup4==4.12.2
+webauthn==2.7.1

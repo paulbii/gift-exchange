@@ -63,18 +63,6 @@ class ProfileForm(FlaskForm):
     submit = SubmitField('Save Changes')
 
 
-class ChangeEmailForm(FlaskForm):
-    """Change account email"""
-    new_email = StringField('New Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Confirm Password', validators=[DataRequired()])
-    submit = SubmitField('Change Email')
-    
-    def validate_new_email(self, field):
-        """Check if email already exists"""
-        if User.query.filter_by(email=field.data.lower()).first():
-            raise ValidationError('This email is already in use.')
-
-
 class ChangePasswordForm(FlaskForm):
     """Change password"""
     current_password = PasswordField('Current Password', validators=[DataRequired()])
