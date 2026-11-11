@@ -118,7 +118,7 @@ def test_promoted_child_registration_keeps_existing_list(app, client, monkeypatc
         'send_invitation': 'y',
     })
     token = child.invite_token
-    client.get('/logout')
+    client.post('/logout')
 
     # Child completes registration via the invite link
     resp = client.post(f'/register/{token}', data={
@@ -141,11 +141,11 @@ def test_fresh_invitee_registration_creates_list(app, client, monkeypatch):
 
     login(client, 'admin@example.com', 'admin-pass')
     client.post('/admin/invite', data={'name': 'Sarah', 'email': 'sarah@example.com'})
-    client.get('/logout')
+    client.post('/logout')
 
     user = User.query.filter_by(email='sarah@example.com').one()
     client.post(f'/register/{user.invite_token}', data={
-        'name': 'Sarah', 'password': 'pw', 'password2': 'pw',
+        'name': 'Sarah', 'password': 'long-enough-pw', 'password2': 'long-enough-pw',
     })
     assert List.query.filter_by(owner_id=user.id).count() == 1
 
@@ -159,7 +159,7 @@ def test_pending_invitee_cannot_log_in_with_temporary(app, client, monkeypatch):
 
     login(client, 'admin@example.com', 'admin-pass')
     client.post('/admin/invite', data={'name': 'Sarah', 'email': 'sarah@example.com'})
-    client.get('/logout')
+    client.post('/logout')
 
     resp = login(client, 'sarah@example.com', 'temporary')
     assert b'Invalid email or password' in resp.data

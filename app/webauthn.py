@@ -131,7 +131,7 @@ def register_verify():
         return jsonify({'error': f'Verification failed: {str(e)}'}), 400
 
     # Store credential
-    device_name = data.get('device_name', 'My Passkey')
+    device_name = str(data.get('device_name') or 'My Passkey')
     new_cred = WebAuthnCredential(
         user_id=user.id,
         credential_id=verification.credential_id,
@@ -165,8 +165,6 @@ def login_options():
                 PublicKeyCredentialDescriptor(id=cred.credential_id)
                 for cred in user.webauthn_credentials
             ]
-            if not allow_credentials:
-                return jsonify({'error': 'No passkeys registered for this account.'}), 404
 
     options = generate_authentication_options(
         rp_id=_rp_id(),

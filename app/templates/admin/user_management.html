@@ -168,6 +168,27 @@
         color: #1565C0;
     }
     
+    .badge-pending {
+        background: var(--color-warning-light);
+        color: #7A5C00;
+        border: 1px solid var(--color-warning);
+    }
+    
+    .badge-expired {
+        background: #FDECEA;
+        color: #B3261E;
+        border: 1px solid #F1B5B0;
+    }
+    
+    .invite-pending {
+        margin-top: 12px;
+        max-width: 560px;
+    }
+    
+    .invite-pending .input-group {
+        margin-bottom: 8px;
+    }
+    
     /* ========== Actions ========== */
     .user-actions {
         display: flex;
@@ -344,6 +365,13 @@
                             {% if user.promoted_from_child %}
                             <span class="badge badge-promoted">Promoted</span>
                             {% endif %}
+                            {% if user.invite_token %}
+                                {% if user.invite_token_expires and user.invite_token_expires > now %}
+                                <span class="badge badge-pending">Invite pending</span>
+                                {% else %}
+                                <span class="badge badge-expired">Invite expired</span>
+                                {% endif %}
+                            {% endif %}
                         </div>
                         <div class="user-meta">
                             <div><i class="bi bi-envelope"></i> {{ user.email }}</div>
@@ -352,6 +380,31 @@
                             <div><i class="bi bi-arrow-up-circle"></i> Promoted: {{ user.promoted_at.strftime('%b %d, %Y') }}</div>
                             {% endif %}
                         </div>
+                        
+                        <!-- Pending invitation -->
+                        {% if user.invite_token %}
+                        <div class="invite-pending">
+                            {% if user.invite_token_expires and user.invite_token_expires > now %}
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control invite-link" readonly
+                                       aria-label="Invitation link for {{ user.name }}"
+                                       value="{{ url_for('main.register', token=user.invite_token, _external=True) }}">
+                                <button type="button" class="btn btn-secondary btn-sm copy-invite">
+                                    <i class="bi bi-clipboard"></i> Copy
+                                </button>
+                            </div>
+                            <div class="user-meta">Hasn't set up their account yet. Link expires {{ user.invite_token_expires.strftime('%b %d at %I:%M %p') }} UTC.</div>
+                            {% else %}
+                            <div class="user-meta">Hasn't set up their account yet, and the invitation link has expired.</div>
+                            {% endif %}
+                            <form method="POST" action="{{ url_for('main.resend_invite', user_id=user.id) }}" class="mt-2">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-secondary btn-sm">
+                                    <i class="bi bi-envelope-arrow-up"></i> Resend invite
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
                         
                         <!-- Managed Children -->
                         {% if user.managed_lists %}
@@ -374,6 +427,7 @@
                                         <i class="bi bi-arrow-up-circle"></i> Promote
                                     </a>
                                     <form method="POST" action="{{ url_for('main.archive_child', child_id=child_user.id) }}" style="display: inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="btn btn-warning btn-sm" title="Archive child profile">
                                             <i class="bi bi-archive"></i> Archive
                                         </button>
@@ -442,6 +496,7 @@
                     
                     <div class="user-actions">
                         <form method="POST" action="{{ url_for('main.restore_user', user_id=user.id) }}" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-success btn-sm">
                                 <i class="bi bi-arrow-counterclockwise"></i> Restore
                             </button>
@@ -506,4 +561,21 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.copy-invite').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var input = btn.parentElement.querySelector('.invite-link');
+        input.select();
+        navigator.clipboard.writeText(input.value).then(function() {
+            btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+            setTimeout(function() { btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy'; }, 2000);
+        }).catch(function() {
+            alert('Could not copy. Please copy the link manually.');
+        });
+    });
+});
+</script>
 {% endblock %}

@@ -463,7 +463,7 @@
                     <!-- Form Actions -->
                     <div class="form-actions">
                         {{ form.submit(class="btn btn-primary btn-lg") }}
-                        <a href="{{ url_for('main.my_list') }}" class="btn btn-secondary btn-lg">Cancel</a>
+                        <a href="{{ url_for('main.my_list') if list.owner_id == current_user.id else url_for('main.manage_child_list', list_id=list.id) }}" class="btn btn-secondary btn-lg">Cancel</a>
                     </div>
                 </form>
             </div>

@@ -495,7 +495,7 @@
                 {% endif %}
                 
                 {% if item.price %}
-                <div class="wish-card-price">${{ "%.2f"|format(item.price) }}</div>
+                <div class="wish-card-price">${{ "{:,.2f}".format(item.price) }}</div>
                 {% endif %}
                 
                 {% if item.url %}
@@ -509,12 +509,14 @@
             <div class="wish-card-actions">
                 {% if item.is_claimed_by(current_user) %}
                 <form method="POST" action="{{ url_for('main.unclaim_item', item_id=item.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-unclaim">
                         <i class="bi bi-x-circle"></i> Changed My Mind
                     </button>
                 </form>
                 {% elif item.is_available() %}
                 <form method="POST" action="{{ url_for('main.claim_item', item_id=item.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-claim">
                         <i class="bi bi-gift"></i> I'll Get This!
                     </button>

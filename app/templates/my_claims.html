@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}My Claims{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ========== Page Header ========== */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .page-title {
+        font-family: var(--font-display);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0;
+    }
+
+    .page-title i {
+        color: var(--color-primary);
+    }
+
+    .claims-summary {
+        color: var(--color-text-muted);
+    }
+
+    .claims-summary strong {
+        color: var(--color-text);
+    }
+
+    /* ========== Groups ========== */
+    .claim-group {
+        background: var(--color-card);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .claim-group-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 20px;
+        background: var(--color-bg-alt);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .claim-group-header h2 {
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        margin: 0;
+    }
+
+    .claim-group-header a {
+        color: var(--color-primary);
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .claim-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .claim-row:last-child {
+        border-bottom: none;
+    }
+
+    .claim-thumb {
+        width: 64px;
+        height: 64px;
+        flex-shrink: 0;
+        border-radius: var(--radius-sm);
+        background: var(--color-bg-alt);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        color: var(--color-text-muted);
+        font-size: 1.5rem;
+    }
+
+    .claim-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .claim-info {
+        flex-grow: 1;
+        min-width: 0;
+    }
+
+    .claim-title {
+        font-weight: 600;
+        color: var(--color-text);
+    }
+
+    .claim-meta {
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 16px;
+    }
+
+    .claim-meta a {
+        color: var(--color-primary);
+        text-decoration: none;
+    }
+
+    .claim-price {
+        font-weight: 700;
+        color: var(--color-primary);
+    }
+
+    /* ========== Empty State ========== */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: var(--color-card);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .empty-state-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 24px;
+        background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-alt) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .empty-state-icon i {
+        font-size: 48px;
+        color: var(--color-accent);
+    }
+
+    .empty-state h3 {
+        font-family: var(--font-display);
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        color: var(--color-text-muted);
+        margin-bottom: 24px;
+    }
+
+    @media (max-width: 576px) {
+        .claim-row {
+            flex-wrap: wrap;
+        }
+
+        .claim-info {
+            flex-basis: calc(100% - 80px);
+        }
+
+        .claim-row form,
+        .claim-row form .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-bag-heart-fill"></i> My Claims
+        </h1>
+        {% if claim_count %}
+        <div class="claims-summary">
+            <strong>{{ claim_count }}</strong> gift{{ 's' if claim_count != 1 else '' }} to get
+            {% if total %}· <strong>${{ "{:,.2f}".format(total) }}</strong> in listed prices{% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    {% if groups %}
+        {% for list, items in groups.items() %}
+        <div class="claim-group">
+            <div class="claim-group-header">
+                <h2>For {{ list.owner.name }}</h2>
+                <a href="{{ url_for('main.view_list', list_id=list.id) }}">
+                    See their list <i class="bi bi-chevron-right"></i>
+                </a>
+            </div>
+            {% for item in items %}
+            <div class="claim-row">
+                <div class="claim-thumb">
+                    {% if item.image_url %}
+                    <img src="{{ item.image_url }}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('i'), {className: 'bi bi-gift'}))">
+                    {% else %}
+                    <i class="bi bi-gift"></i>
+                    {% endif %}
+                </div>
+                <div class="claim-info">
+                    <div class="claim-title">{{ item.title }}</div>
+                    <div class="claim-meta">
+                        {% if item.price %}
+                        <span class="claim-price">${{ "{:,.2f}".format(item.price) }}</span>
+                        {% endif %}
+                        {% if item.description %}
+                        <span>{{ item.description|truncate(80) }}</span>
+                        {% endif %}
+                        {% if item.url %}
+                        <a href="{{ item.url }}" target="_blank" rel="noopener">
+                            <i class="bi bi-box-arrow-up-right"></i> View Product
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <form method="POST" action="{{ url_for('main.unclaim_item', item_id=item.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="next" value="claims">
+                    <button type="submit" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-x-circle"></i> Changed My Mind
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="bi bi-bag-heart"></i>
+        </div>
+        <h3>Nothing claimed yet</h3>
+        <p>When you claim a gift on someone's wishlist, it shows up here so you can keep track of what you're getting.</p>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-lg">
+            <i class="bi bi-gift"></i> Browse Wishlists
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

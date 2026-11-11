@@ -1,7 +1,18 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, TextAreaField, DecimalField, IntegerField, BooleanField, SubmitField
-from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Optional, NumberRange, URL
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Optional, NumberRange, URL, Length
 from app.models import User
+
+
+MIN_PASSWORD_LENGTH = 8
+password_length = Length(min=MIN_PASSWORD_LENGTH,
+                         message=f'Password must be at least {MIN_PASSWORD_LENGTH} characters.')
+
+
+def http_url_only(form, field):
+    """Only allow http(s) links (blocks javascript:, data:, etc.)"""
+    if field.data and not field.data.strip().lower().startswith(('http://', 'https://')):
+        raise ValidationError('Link must start with http:// or https://')
 
 
 class LoginForm(FlaskForm):
@@ -15,7 +26,7 @@ class LoginForm(FlaskForm):
 class RegistrationForm(FlaskForm):
     """New user registration (for invited users)"""
     name = StringField('Name', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired(), password_length])
     password2 = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Complete Setup')
 
@@ -40,7 +51,7 @@ class PasswordResetRequestForm(FlaskForm):
 
 class PasswordResetForm(FlaskForm):
     """Reset password with token"""
-    password = PasswordField('New Password', validators=[DataRequired()])
+    password = PasswordField('New Password', validators=[DataRequired(), password_length])
     password2 = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Reset Password')
 
@@ -67,7 +78,7 @@ class ChangeEmailForm(FlaskForm):
 class ChangePasswordForm(FlaskForm):
     """Change password"""
     current_password = PasswordField('Current Password', validators=[DataRequired()])
-    new_password = PasswordField('New Password', validators=[DataRequired()])
+    new_password = PasswordField('New Password', validators=[DataRequired(), password_length])
     new_password2 = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('new_password')])
     submit = SubmitField('Change Password')
 
@@ -76,11 +87,11 @@ class ItemForm(FlaskForm):
     """Add or edit wishlist item"""
     title = StringField('Item Title', validators=[DataRequired()])
     description = TextAreaField('Description', validators=[Optional()])
-    url = StringField('Link/URL', validators=[Optional(), URL()])
-    image_url = StringField('Image URL', validators=[Optional(), URL()])
+    url = StringField('Link/URL', validators=[Optional(), http_url_only, URL()])
+    image_url = StringField('Image URL', validators=[Optional(), http_url_only, URL()])
     price = DecimalField('Price', validators=[Optional()], places=2)
     allow_multiple = BooleanField('Allow multiple people to buy this')
-    max_claims = IntegerField('How many?', validators=[Optional(), NumberRange(min=1)], default=1)
+    max_claims = IntegerField('How many?', validators=[Optional(), NumberRange(min=1)])
     submit = SubmitField('Save Item')
 
 

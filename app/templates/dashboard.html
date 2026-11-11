@@ -48,6 +48,7 @@
     
     .welcome-greeting {
         font-family: var(--font-display);
+        color: white;
         font-size: 2rem;
         font-weight: 600;
         margin-bottom: 8px;
@@ -402,7 +403,7 @@
                 </p>
                 <div class="welcome-actions">
                     <a href="{{ url_for('main.my_list') }}" class="btn">
-                        <i class="bi bi-list-heart"></i> View My Wishlist
+                        <i class="bi bi-list-stars"></i> View My Wishlist
                     </a>
                     {% if current_user.is_admin %}
                     <a href="{{ url_for('main.invite_user') }}" class="btn btn-outline">
@@ -497,8 +498,9 @@
                 <div class="family-info">
                     <h3>{{ list.owner.name }}</h3>
                     <div class="item-count">
-                        {% if list.items %}
-                        <i class="bi bi-gift"></i> {{ list.items|length }} item{{ 's' if list.items|length != 1 else '' }}
+                        {% set active_count = list.items|rejectattr('received_at')|list|length %}
+                        {% if active_count %}
+                        <i class="bi bi-gift"></i> {{ active_count }} item{{ 's' if active_count != 1 else '' }}
                         {% else %}
                         <i class="bi bi-inbox"></i> No items yet
                         {% endif %}

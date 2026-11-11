@@ -1,10 +1,12 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from datetime import datetime, timedelta
+import ipaddress
 import secrets
+import socket
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 from app import db
 from app.models import User, List, Item, Claim
 from app.forms import (LoginForm, RegistrationForm, InviteUserForm, PasswordResetRequestForm,
@@ -31,15 +33,25 @@ def fetch_image_from_url(url):
         if not url.startswith(('http://', 'https://')):
             url = 'https://' + url
         
-        # Fetch the page - explicitly allow redirects for sponsored links
+        # Fetch the page, following redirects ourselves (sponsored links redirect)
+        # so every hop is checked against private/internal addresses.
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
-        response = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
+        for _ in range(MAX_IMAGE_FETCH_REDIRECTS + 1):
+            if not _is_public_http_url(url):
+                return None
+            response = requests.get(url, headers=headers, timeout=IMAGE_FETCH_TIMEOUT, allow_redirects=False)
+            if response.is_redirect:
+                url = urljoin(url, response.headers['Location'])
+                continue
+            break
+        else:
+            return None
         response.raise_for_status()
         
         # Use the final URL after any redirects (important for Amazon sponsored links)
-        final_url = response.url
+        final_url = url
         
         # Parse HTML
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -67,6 +79,39 @@ def fetch_image_from_url(url):
     except Exception:
         # Silently fail - not critical if image fetch doesn't work
         return None
+
+
+MAX_IMAGE_FETCH_REDIRECTS = 5
+IMAGE_FETCH_TIMEOUT = 8  # seconds per hop; add/edit item waits on this
+
+
+def _is_public_http_url(url):
+    """True only for http(s) URLs whose host resolves to public addresses.
+
+    Keeps the image fetcher from being pointed at localhost, the private
+    network, or cloud metadata endpoints.
+    """
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ('http', 'https') or not parsed.hostname:
+            return False
+        port = parsed.port or (443 if parsed.scheme == 'https' else 80)
+        infos = socket.getaddrinfo(parsed.hostname, port, proto=socket.IPPROTO_TCP)
+        return bool(infos) and all(ipaddress.ip_address(info[4][0]).is_global for info in infos)
+    except (ValueError, OSError):
+        return False
+
+
+def _is_safe_next(target):
+    """Only allow post-login redirects to paths on this site."""
+    return bool(target) and target.startswith('/') and not target.startswith('//') and '\\' not in target
+
+
+def _list_url(list_obj):
+    """Where to send someone after working on a list: their own, or the child's."""
+    if list_obj.owner_id == current_user.id:
+        return url_for('main.my_list')
+    return url_for('main.manage_child_list', list_id=list_obj.id)
 
 
 def _normalize_image_url(image_url, base_url):
@@ -104,13 +149,13 @@ def login():
                 return render_template('login.html', form=form)
             login_user(user, remember=form.remember_me.data)
             next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('main.dashboard'))
+            return redirect(next_page) if _is_safe_next(next_page) else redirect(url_for('main.dashboard'))
         flash('Invalid email or password.', 'danger')
     
     return render_template('login.html', form=form)
 
 
-@main.route('/logout')
+@main.route('/logout', methods=['POST'])
 @login_required
 def logout():
     """User logout"""
@@ -197,6 +242,11 @@ def reset_password(token):
         user.set_password(form.password.data)
         user.password_reset_token = None
         user.password_reset_expires = None
+        # A never-registered invitee who resets their password is now set up
+        user.invite_token = None
+        user.invite_token_expires = None
+        if not user.owned_list:
+            db.session.add(List(owner_id=user.id, name=f"{user.name}'s List"))
         db.session.commit()
         
         flash('Your password has been reset. You can now log in.', 'success')
@@ -269,7 +319,7 @@ def manage_child_list(list_id):
     child_list = List.query.get_or_404(list_id)
     
     # Check if current user manages this list or is admin
-    if not current_user.can_manage_list(child_list) and not current_user.is_admin:
+    if not current_user.can_manage_list(child_list) and not (current_user.is_admin and child_list.managed_by_id is not None):
         flash('You do not have permission to manage this list.', 'danger')
         return redirect(url_for('main.dashboard'))
     
@@ -306,7 +356,7 @@ def view_list(list_id):
     
     # Check if this is the user's own list or a list they manage
     if current_user.can_manage_list(view_list_obj):
-        return redirect(url_for('main.my_list'))
+        return redirect(_list_url(view_list_obj))
     
     # Get filter preference from query string
     show_available_only = request.args.get('available', 'false') == 'true'
@@ -374,7 +424,7 @@ def add_item(list_id):
         db.session.commit()
         
         flash('Item added to list!', 'success')
-        return redirect(url_for('main.my_list'))
+        return redirect(_list_url(list_obj))
     
     return render_template('item_form.html', form=form, list=list_obj, edit=False)
 
@@ -395,18 +445,21 @@ def edit_item(item_id):
     # Pre-populate allow_multiple checkbox
     if request.method == 'GET':
         form.allow_multiple.data = item.max_claims > 1
-        if item.max_claims > 1 and item.max_claims < 999:
-            form.max_claims.data = item.max_claims
+        # Blank means unlimited (stored as 999)
+        form.max_claims.data = item.max_claims if 1 < item.max_claims < 999 else None
     
     if form.validate_on_submit():
-        # Auto-fetch image if URL changed and no manual image_url provided
+        # Auto-fetch the image when the product URL changes (unless the image
+        # field was edited by hand), or when the item has never had an image.
         image_url = form.image_url.data
-        if form.url.data and not image_url:
-            # Check if URL changed or item never had an image
-            if form.url.data != item.url or not item.image_url:
-                fetched_image = fetch_image_from_url(form.url.data)
-                if fetched_image:
-                    image_url = fetched_image
+        url_changed = (form.url.data or None) != (item.url or None)
+        image_untouched = (image_url or None) == (item.image_url or None)
+        if form.url.data:
+            if url_changed and (image_untouched or not image_url):
+                # The old image belonged to the old product, so don't keep it
+                image_url = fetch_image_from_url(form.url.data)
+            elif not image_url and not item.image_url:
+                image_url = fetch_image_from_url(form.url.data)
         
         item.title = form.title.data
         item.description = form.description.data
@@ -422,7 +475,7 @@ def edit_item(item_id):
         
         db.session.commit()
         flash('Item updated!', 'success')
-        return redirect(url_for('main.my_list'))
+        return redirect(_list_url(item.list))
     
     return render_template('item_form.html', form=form, list=item.list, edit=True, item=item)
 
@@ -443,6 +496,7 @@ def delete_item(item_id):
         send_item_deleted_notification(item)
     
     list_id = item.list_id
+    return_url = _list_url(item.list)
     db.session.delete(item)
     db.session.commit()
     
@@ -453,79 +507,7 @@ def delete_item(item_id):
     db.session.commit()
     
     flash('Item deleted.', 'success')
-    return redirect(url_for('main.my_list'))
-
-
-@main.route('/fetch-product-image', methods=['POST'])
-@login_required
-def fetch_product_image():
-    """Fetch product image from URL"""
-    try:
-        data = request.get_json()
-        url = data.get('url', '').strip()
-        
-        if not url:
-            return jsonify({'error': 'No URL provided'}), 400
-        
-        # Add http:// if missing
-        if not url.startswith(('http://', 'https://')):
-            url = 'https://' + url
-        
-        # Fetch the page
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
-        
-        # Parse HTML
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Try Open Graph image (most reliable)
-        og_image = soup.find('meta', property='og:image')
-        if og_image and og_image.get('content'):
-            image_url = og_image.get('content')
-            # Make absolute URL if needed
-            if image_url.startswith('//'):
-                image_url = 'https:' + image_url
-            elif image_url.startswith('/'):
-                from urllib.parse import urlparse
-                parsed = urlparse(url)
-                image_url = f"{parsed.scheme}://{parsed.netloc}{image_url}"
-            return jsonify({'image_url': image_url, 'success': True})
-        
-        # Try Twitter card image
-        twitter_image = soup.find('meta', attrs={'name': 'twitter:image'})
-        if twitter_image and twitter_image.get('content'):
-            image_url = twitter_image.get('content')
-            if image_url.startswith('//'):
-                image_url = 'https:' + image_url
-            elif image_url.startswith('/'):
-                from urllib.parse import urlparse
-                parsed = urlparse(url)
-                image_url = f"{parsed.scheme}://{parsed.netloc}{image_url}"
-            return jsonify({'image_url': image_url, 'success': True})
-        
-        # Try meta itemprop image
-        itemprop_image = soup.find('meta', attrs={'itemprop': 'image'})
-        if itemprop_image and itemprop_image.get('content'):
-            image_url = itemprop_image.get('content')
-            if image_url.startswith('//'):
-                image_url = 'https:' + image_url
-            elif image_url.startswith('/'):
-                from urllib.parse import urlparse
-                parsed = urlparse(url)
-                image_url = f"{parsed.scheme}://{parsed.netloc}{image_url}"
-            return jsonify({'image_url': image_url, 'success': True})
-        
-        return jsonify({'error': 'No image found on this page'}), 404
-        
-    except requests.exceptions.Timeout:
-        return jsonify({'error': 'Request timed out. The website took too long to respond.'}), 408
-    except requests.exceptions.RequestException as e:
-        return jsonify({'error': f'Could not fetch the page: {str(e)}'}), 400
-    except Exception as e:
-        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+    return redirect(return_url)
 
 
 @main.route('/item/mark-received/<int:item_id>', methods=['POST'])
@@ -543,7 +525,7 @@ def mark_received(item_id):
     db.session.commit()
     
     flash(f'"{item.title}" marked as received!', 'success')
-    return redirect(url_for('main.my_list'))
+    return redirect(_list_url(item.list))
 
 
 @main.route('/item/restore/<int:item_id>', methods=['GET', 'POST'])
@@ -562,8 +544,7 @@ def restore_item(item_id):
     # Pre-populate allow_multiple checkbox
     if request.method == 'GET':
         form.allow_multiple.data = original_item.max_claims > 1
-        if original_item.max_claims > 1 and original_item.max_claims < 999:
-            form.max_claims.data = original_item.max_claims
+        form.max_claims.data = original_item.max_claims if 1 < original_item.max_claims < 999 else None
     
     if form.validate_on_submit():
         # Calculate position (append to end of active items)
@@ -592,13 +573,13 @@ def restore_item(item_id):
         db.session.add(new_item)
         db.session.commit()
         
-        flash(f'"{new_item.title}" restored to your active list!', 'success')
-        return redirect(url_for('main.my_list'))
+        flash(f'"{new_item.title}" restored to the active list!', 'success')
+        return redirect(_list_url(original_item.list))
     
     return render_template('item_form.html', form=form, list=original_item.list, edit=True, item=original_item, restoring=True)
 
 
-@main.route('/item/move/<int:item_id>/<direction>')
+@main.route('/item/move/<int:item_id>/<direction>', methods=['POST'])
 @login_required
 def move_item(item_id, direction):
     """Move item up or down in priority"""
@@ -609,27 +590,29 @@ def move_item(item_id, direction):
         flash('You do not have permission to reorder this list.', 'danger')
         return redirect(url_for('main.dashboard'))
     
-    # Get adjacent item
+    # Get adjacent active item (received items are hidden, so skip over them)
+    active_neighbors = Item.query.filter(
+        Item.list_id == item.list_id,
+        Item.received_at.is_(None)
+    )
     if direction == 'up':
-        adjacent = Item.query.filter(
-            Item.list_id == item.list_id,
+        adjacent = active_neighbors.filter(
             Item.position < item.position
         ).order_by(Item.position.desc()).first()
     elif direction == 'down':
-        adjacent = Item.query.filter(
-            Item.list_id == item.list_id,
+        adjacent = active_neighbors.filter(
             Item.position > item.position
         ).order_by(Item.position.asc()).first()
     else:
         flash('Invalid direction.', 'danger')
-        return redirect(url_for('main.my_list'))
+        return redirect(_list_url(item.list))
     
     if adjacent:
         # Swap positions
         item.position, adjacent.position = adjacent.position, item.position
         db.session.commit()
     
-    return redirect(url_for('main.my_list'))
+    return redirect(_list_url(item.list))
 
 
 # ==================== CLAIM MANAGEMENT ====================
@@ -644,6 +627,11 @@ def claim_item(item_id):
     if current_user.can_manage_list(item.list):
         flash('You cannot claim items from your own list.', 'danger')
         return redirect(url_for('main.dashboard'))
+    
+    # Received items are off the list
+    if item.is_received():
+        flash('This item has already been received.', 'warning')
+        return redirect(url_for('main.view_list', list_id=item.list_id))
     
     # Check if already claimed by this user
     if item.is_claimed_by(current_user):
@@ -679,7 +667,32 @@ def unclaim_item(item_id):
     db.session.commit()
     
     flash('Item unclaimed.', 'info')
+    if request.form.get('next') == 'claims':
+        return redirect(url_for('main.my_claims'))
     return redirect(url_for('main.view_list', list_id=item.list_id))
+
+
+@main.route('/my-claims')
+@login_required
+def my_claims():
+    """Everything the current user has claimed, grouped by whose list it is on"""
+    claims = Claim.query.join(Item, Claim.item_id == Item.id) \
+        .join(List, Item.list_id == List.id) \
+        .join(User, List.owner_id == User.id) \
+        .filter(
+            Claim.claimed_by_id == current_user.id,
+            Item.received_at.is_(None),
+            User.is_active == True
+        ).order_by(User.name, Item.position).all()
+    
+    # Group by list, keeping the name ordering from the query
+    groups = {}
+    for claim in claims:
+        groups.setdefault(claim.item.list, []).append(claim.item)
+    
+    total = sum(claim.item.price for claim in claims if claim.item.price)
+    
+    return render_template('my_claims.html', groups=groups, claim_count=len(claims), total=total)
 
 
 # ==================== HELP & DOCUMENTATION ====================
@@ -830,7 +843,30 @@ def user_management():
     return render_template('admin/user_management.html',
                          active_users=active_users,
                          archived_users=archived_users,
-                         delete_forms=delete_forms)
+                         delete_forms=delete_forms,
+                         now=datetime.utcnow())
+
+
+@main.route('/admin/users/<int:user_id>/resend-invite', methods=['POST'])
+@login_required
+def resend_invite(user_id):
+    """Admin: issue a fresh invitation link for someone who hasn't registered yet"""
+    if not current_user.is_admin:
+        flash('Only administrators can resend invitations.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    user = User.query.get_or_404(user_id)
+    
+    if not user.invite_token:
+        flash(f'{user.name} has already finished setting up their account.', 'info')
+        return redirect(url_for('main.user_management'))
+    
+    token = user.generate_invite_token()
+    db.session.commit()
+    send_invite_email(user, token, user.name)
+    
+    flash(f'New invitation sent to {user.email}. The link is also shown below.', 'success')
+    return redirect(url_for('main.user_management'))
 
 
 @main.route('/admin/users/<int:user_id>/archive', methods=['GET', 'POST'])
@@ -920,6 +956,12 @@ def delete_user(user_id):
         if form.confirm_email.data != expected_confirm:
             flash('Email confirmation does not match.', 'danger')
             return redirect(url_for('main.user_management'))
+        
+        # Items this user added to someone else's list (e.g. a parent adding to a
+        # child's list) stay on that list, so hand them to the list owner first.
+        for item in Item.query.filter_by(created_by_id=user.id).all():
+            if item.list.owner_id != user.id:
+                item.created_by_id = item.list.owner_id
         
         # Delete the user (CASCADE will handle related data)
         user_name = user.name
@@ -1020,7 +1062,7 @@ def promote_child(child_id):
             send_invite_email(child, token, child.name)
             flash(f'{child.name} has been promoted! Invitation email sent to {email}.', 'success')
         else:
-            flash(f'{child.name} has been promoted! Share this invitation link with them.', 'success')
+            flash(f'{child.name} has been promoted! Their invitation link is shown below to share.', 'success')
         
         return redirect(url_for('main.user_management'))
     

@@ -1,4 +1,5 @@
 from flask import url_for, current_app
+from markupsafe import escape
 import os
 import requests
 
@@ -85,7 +86,7 @@ Happy gift giving!
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
     <h2 style="color: #0d6efd;">🎁 Welcome to the Power Family Wishlist!</h2>
     
-    <p>Hi {name},</p>
+    <p>Hi {escape(name)},</p>
     
     <p>You've been invited to join our family wishlist system!</p>
     
@@ -136,7 +137,7 @@ If you didn't request this, please ignore this email.
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
     <h2 style="color: #0d6efd;">🔑 Reset Your Password</h2>
     
-    <p>Hi {user.name},</p>
+    <p>Hi {escape(user.name)},</p>
     
     <p>You requested to reset your password for the Power Family Wishlist.</p>
     
@@ -172,12 +173,12 @@ You may want to choose a different gift from their list.
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
     <h2 style="color: #dc3545;">⚠️ Item Removed</h2>
     
-    <p>Hi {claimer.name},</p>
+    <p>Hi {escape(claimer.name)},</p>
     
-    <p>An item you claimed has been removed from <strong>{item.list.owner.name}'s wishlist</strong>:</p>
+    <p>An item you claimed has been removed from <strong>{escape(item.list.owner.name)}'s wishlist</strong>:</p>
     
     <p style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #dc3545;">
-        <strong>"{item.title}"</strong>
+        <strong>"{escape(item.title)}"</strong>
     </p>
     
     <p>You may want to choose a different gift from their list.</p>
