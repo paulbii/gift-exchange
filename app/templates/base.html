@@ -735,6 +735,14 @@
     
     <!-- Auto-dismiss flash messages -->
     <script>
+        // Dialogs are written next to the button that opens them, often inside a
+        // card that is animated or lifts on hover. A transformed card traps the
+        // dialog underneath the page dimmer, where nothing in it can be clicked.
+        // Moving every dialog to the end of the page keeps it on top.
+        document.querySelectorAll('.modal').forEach(function(modal) {
+            document.body.appendChild(modal);
+        });
+        
         document.addEventListener('DOMContentLoaded', function() {
             // Auto-dismiss flash messages after 5 seconds
             setTimeout(function() {
