@@ -338,6 +338,11 @@
     /* ========== Page Header ========== */
     .page-header {
         margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
     }
     
     .page-header h1 {
@@ -386,6 +391,114 @@
             text-align: center;
         }
     }
+    /* ========== Compact rows on phones ========== */
+    @media (max-width: 576px) {
+        .wishlist-grid {
+            gap: 12px;
+        }
+        
+        .wish-card {
+            display: grid;
+            grid-template-columns: 108px minmax(0, 1fr);
+            grid-template-areas:
+                "head head"
+                "image body"
+                "actions actions";
+            column-gap: 14px;
+        }
+        
+        .wish-card:hover {
+            transform: none;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .wish-card:hover .wish-card-image {
+            transform: none;
+        }
+        
+        /* Badges and controls sit in a strip above the row instead of over the image */
+        .priority-badge,
+        .status-badge,
+        .reorder-controls {
+            position: static;
+            grid-area: head;
+            align-self: center;
+            margin: 10px 12px 0;
+        }
+        
+        .priority-badge {
+            justify-self: start;
+            padding: 3px 10px;
+            font-size: 0.75rem;
+            box-shadow: none;
+        }
+        
+        .status-badge {
+            justify-self: end;
+            padding: 3px 10px;
+            font-size: 0.7rem;
+            box-shadow: none;
+        }
+        
+        .wish-card-image-container {
+            grid-area: image;
+            width: 96px;
+            height: 96px;
+            aspect-ratio: auto;
+            margin: 10px 0 12px 12px;
+            border-radius: var(--radius-md);
+        }
+        
+        .wish-card-no-image i {
+            font-size: 32px;
+            margin-bottom: 0;
+        }
+        
+        .wish-card-no-image span {
+            display: none;
+        }
+        
+        .wish-card-body {
+            grid-area: body;
+            padding: 10px 12px 12px 0;
+            min-width: 0;
+        }
+        
+        .wish-card-title {
+            font-size: 1.05rem;
+            margin-bottom: 4px;
+            overflow-wrap: anywhere;
+        }
+        
+        .wish-card-description {
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            flex-grow: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .wish-card-meta {
+            margin-bottom: 6px;
+            gap: 8px;
+        }
+        
+        .wish-card-price {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+        
+        .wish-card-actions {
+            grid-area: actions;
+            padding: 10px 12px;
+        }
+        
+        .wish-card-actions .btn {
+            padding: 10px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -396,9 +509,15 @@
         <h1 class="page-title">
             <i class="bi bi-gift"></i> {{ list.name }}
         </h1>
+        {% if can_manage %}
+        <a href="{{ url_for('main.manage_child_list', list_id=list.id) }}" class="btn btn-secondary">
+            <i class="bi bi-pencil"></i> Manage This List
+        </a>
+        {% endif %}
     </div>
     
-    <!-- Delivery Email Banner -->
+    <!-- Delivery Email Banner (child profiles have no real email address) -->
+    {% if not list.owner.get_delivery_email().endswith('@placeholder.local') %}
     <div class="delivery-banner">
         <i class="bi bi-envelope-heart"></i>
         <div class="delivery-banner-content">
@@ -408,6 +527,7 @@
             </p>
         </div>
     </div>
+    {% endif %}
     
     <!-- Filter Bar -->
     <div class="filter-bar">

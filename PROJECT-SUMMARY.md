@@ -52,7 +52,7 @@ Five models in `app/models.py`:
 - `/dashboard` - Shows all active family members and their lists
 - `/my-list` - View/manage your own list (active + received tabs)
 - `/manage-child-list/<list_id>` - Manage a child's list
-- `/list/<list_id>` - View someone else's list (with claim buttons)
+- `/list/<list_id>` - Shopping view of a list (with claim buttons). Only the list's owner is blocked; a parent who manages a child's list can shop it and claim from it
 - `/help-guide` - In-app help guide
 
 ### Item Management (login required)
@@ -61,7 +61,7 @@ Five models in `app/models.py`:
 - `/item/delete/<item_id>` - Delete item (notifies claimers via email)
 - `/item/mark-received/<item_id>` - Mark as received (soft archive)
 - `/item/restore/<item_id>` - Restore received item (creates a copy)
-- `/item/move/<item_id>/<direction>` - Reorder (POST; up/down swap among active items)
+- `/item/move/<item_id>/<direction>` - Reorder (POST; `up`/`down` swap among active items, `top` moves to first)
 
 ### Claim Management (login required)
 - `/claim/<item_id>` - Claim an item (POST)
@@ -100,7 +100,7 @@ Five models in `app/models.py`:
 - `login.html`, `register.html`, `forgot_password.html`, `reset_password.html`
 - `dashboard.html` - Family member grid with list links
 - `my_list.html` - Own list with active/received tabs, child list sidebar
-- `view_list.html` - Other person's list with claim/unclaim buttons
+- `view_list.html` - Other person's list with claim/unclaim buttons (compact rows on phones)
 - `item_form.html` - Add/edit item form with image preview
 - `invite_user.html` - Admin invite form (shows invite URL after success)
 - `profile.html`, `change_password.html`

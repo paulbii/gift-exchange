@@ -84,8 +84,12 @@ class User(UserMixin, db.Model):
         return list_obj.owner_id == self.id or list_obj.managed_by_id == self.id
     
     def can_see_claims(self, list_obj):
-        """Check if user can see claim status on a list (cannot see own/managed lists)"""
-        return not self.can_manage_list(list_obj)
+        """Check if user can see claim status on a list.
+
+        Only the person the gifts are for is kept in the dark. A parent who
+        manages a child's list is a shopper too, so they can see and make claims.
+        """
+        return list_obj.owner_id != self.id
     
     def is_child_profile(self):
         """Check if this is a child profile (managed by someone, no email/password)"""

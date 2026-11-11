@@ -355,9 +355,10 @@ def view_list(list_id):
     """View someone else's list"""
     view_list_obj = List.query.get_or_404(list_id)
     
-    # Check if this is the user's own list or a list they manage
-    if current_user.can_manage_list(view_list_obj):
-        return redirect(_list_url(view_list_obj))
+    # Your own list never shows claims. (A parent managing a child's list can
+    # shop it like anyone else: the surprise is for the child, not the parent.)
+    if not current_user.can_see_claims(view_list_obj):
+        return redirect(url_for('main.my_list'))
     
     # Get filter preference from query string
     show_available_only = request.args.get('available', 'false') == 'true'
@@ -374,6 +375,7 @@ def view_list(list_id):
     
     return render_template('view_list.html', 
                          list=view_list_obj, 
+                         can_manage=current_user.can_manage_list(view_list_obj),
                          items=items,
                          show_available_only=show_available_only,
                          total_items=total_items,
@@ -583,7 +585,7 @@ def restore_item(item_id):
 @main.route('/item/move/<int:item_id>/<direction>', methods=['POST'])
 @login_required
 def move_item(item_id, direction):
-    """Move item up or down in priority"""
+    """Move item up, down, or straight to the top in priority"""
     item = Item.query.get_or_404(item_id)
     
     # Check permission
@@ -596,6 +598,14 @@ def move_item(item_id, direction):
         Item.list_id == item.list_id,
         Item.received_at.is_(None)
     )
+    if direction == 'top':
+        # Put this item first, then renumber the whole list so positions stay unique
+        others = [other for other in item.list.items if other.id != item.id]
+        for position, list_item in enumerate([item] + others, start=1):
+            list_item.position = position
+        db.session.commit()
+        return redirect(_list_url(item.list))
+    
     if direction == 'up':
         adjacent = active_neighbors.filter(
             Item.position < item.position
@@ -624,8 +634,8 @@ def claim_item(item_id):
     """Claim an item"""
     item = Item.query.get_or_404(item_id)
     
-    # Cannot claim from own/managed lists
-    if current_user.can_manage_list(item.list):
+    # Cannot claim from your own list (a managing parent can claim for their child)
+    if not current_user.can_see_claims(item.list):
         flash('You cannot claim items from your own list.', 'danger')
         return redirect(url_for('main.dashboard'))
     

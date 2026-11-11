@@ -223,8 +223,8 @@ def test_child_list_actions_return_to_child_list(app, client):
     assert resp.headers['Location'].endswith(child_url)
     resp = client.post(f'/item/move/{item.id}/up')
     assert resp.headers['Location'].endswith(child_url)
-    resp = client.get(f'/list/{kid.owned_list.id}')
-    assert resp.headers['Location'].endswith(child_url)
+    # (Opening /list/<id> for a managed child is now the shopping view;
+    # see tests/test_parent_shopping.py.)
     resp = client.post(f'/item/mark-received/{item.id}')
     assert resp.headers['Location'].endswith(child_url)
     resp = client.post(f'/item/delete/{item.id}')

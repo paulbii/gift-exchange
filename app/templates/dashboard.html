@@ -195,6 +195,10 @@
         font-weight: 600;
     }
     
+    .family-card .btn + .btn {
+        margin-top: 8px;
+    }
+    
     .family-card .btn-view {
         background: var(--color-bg-alt);
         color: var(--color-text);
@@ -515,6 +519,9 @@
                         <i class="bi bi-pencil"></i> Manage My List
                     </a>
                     {% else %}
+                    <a href="{{ url_for('main.view_list', list_id=list.id) }}" class="btn btn-view">
+                        <i class="bi bi-gift"></i> Shop Their Wishlist
+                    </a>
                     <a href="{{ url_for('main.manage_child_list', list_id=list.id) }}" class="btn btn-manage">
                         <i class="bi bi-pencil"></i> Manage List
                     </a>
