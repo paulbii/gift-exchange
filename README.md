@@ -16,12 +16,13 @@ see [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md). Related docs:
 - "My Claims": everything you've committed to buy, in one place
 - Parent-managed child profiles that can be promoted to full accounts
 - Invite-only sign-up, with password or passkey login
-- Admin tools: invite and re-invite, archive, restore, delete
+- Admin tools: invite and re-invite, create a password reset link to hand over
+  directly, archive, restore, delete
 
 ## Stack
 
 Flask 3 on Python 3.12, PostgreSQL in production (SQLite locally), Bootstrap 5
-templates, SendGrid for email, hosted on Railway.
+templates, Resend (or SendGrid) for email, hosted on Railway.
 
 ## Run it locally
 
@@ -34,8 +35,8 @@ FLASK_ENV=development ./venv/bin/flask --app run run
 ```
 
 Then open http://localhost:5000 and log in as the admin you just created.
-Without `DATABASE_URL`, development uses a local `dev.db` SQLite file. Without a
-SendGrid key, emails are skipped and the app shows the invitation link to copy.
+Without `DATABASE_URL`, development uses a local `dev.db` SQLite file. Without an
+email API key, emails are skipped and the app shows the invitation link to copy.
 
 ## Tests
 
@@ -52,8 +53,8 @@ Pushing to `main` deploys to Railway. The service needs these variables:
 | `FLASK_ENV` | `production` |
 | `SECRET_KEY` | Required. The app will not start without it. |
 | `DATABASE_URL` | Set by Railway's Postgres plugin |
-| `SENDGRID_API_KEY` | Or `MAIL_PASSWORD`, which is read as a fallback |
-| `MAIL_DEFAULT_SENDER` | A sender address verified in SendGrid |
+| `RESEND_API_KEY` | Email is sent through Resend when this is set. Without it the app falls back to SendGrid (`SENDGRID_API_KEY`, or the older `MAIL_PASSWORD`) |
+| `MAIL_DEFAULT_SENDER` | An address on a domain verified with the email provider, e.g. `Wishlist <wishlist@yourdomain.com>` |
 | `WEBAUTHN_RP_ID` | Bare domain, no scheme or port |
 | `WEBAUTHN_RP_NAME` | Name shown in passkey prompts |
 | `WEBAUTHN_ORIGIN` | Full `https://` URL of the site |

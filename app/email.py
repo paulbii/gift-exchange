@@ -5,58 +5,64 @@ import requests
 
 
 def send_email(subject, recipients, text_body, html_body=None):
-    """Send an email using SendGrid HTTP API"""
-    # Get SendGrid API key from environment
-    api_key = os.environ.get('SENDGRID_API_KEY') or os.environ.get('MAIL_PASSWORD')
+    """Send an email. Returns True if the provider accepted it.
+
+    Uses Resend when RESEND_API_KEY is set, otherwise SendGrid
+    (SENDGRID_API_KEY, or the older MAIL_PASSWORD variable).
+    Both are plain HTTPS APIs; Railway blocks outgoing SMTP.
+    """
     sender = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@giftexchange.com')
-    
-    if not api_key:
-        current_app.logger.error('No SendGrid API key configured')
-        return False
     
     # Ensure recipients is a list
     if not isinstance(recipients, list):
         recipients = [recipients]
     
-    # Build SendGrid API request
-    data = {
-        "personalizations": [
-            {
-                "to": [{"email": email} for email in recipients]
-            }
-        ],
-        "from": {"email": sender},
-        "subject": subject,
-        "content": [
-            {"type": "text/plain", "value": text_body}
-        ]
-    }
+    resend_key = os.environ.get('RESEND_API_KEY')
+    sendgrid_key = os.environ.get('SENDGRID_API_KEY') or os.environ.get('MAIL_PASSWORD')
     
-    # Add HTML content if provided
-    if html_body:
-        data["content"].append({"type": "text/html", "value": html_body})
+    if resend_key:
+        provider = 'Resend'
+        url = 'https://api.resend.com/emails'
+        api_key = resend_key
+        data = {'from': sender, 'to': recipients, 'subject': subject, 'text': text_body}
+        if html_body:
+            data['html'] = html_body
+    elif sendgrid_key:
+        provider = 'SendGrid'
+        url = 'https://api.sendgrid.com/v3/mail/send'
+        api_key = sendgrid_key
+        data = {
+            'personalizations': [{'to': [{'email': email} for email in recipients]}],
+            'from': {'email': sender},
+            'subject': subject,
+            'content': [{'type': 'text/plain', 'value': text_body}]
+        }
+        if html_body:
+            data['content'].append({'type': 'text/html', 'value': html_body})
+    else:
+        current_app.logger.error('No email API key configured (RESEND_API_KEY or SENDGRID_API_KEY)')
+        return False
     
-    # Send via SendGrid HTTP API
     try:
         response = requests.post(
-            "https://api.sendgrid.com/v3/mail/send",
+            url,
             headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json"
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json'
             },
             json=data,
             timeout=10
         )
         
-        if response.status_code == 202:
-            current_app.logger.info(f'Email sent successfully to {recipients}')
+        if 200 <= response.status_code < 300:
+            current_app.logger.info(f'Email sent via {provider} to {recipients}')
             return True
         else:
-            current_app.logger.error(f'SendGrid error {response.status_code}: {response.text}')
+            current_app.logger.error(f'{provider} error {response.status_code}: {response.text}')
             return False
             
     except Exception as e:
-        current_app.logger.error(f'Failed to send email: {str(e)}')
+        current_app.logger.error(f'Failed to send email via {provider}: {str(e)}')
         return False
 
 

@@ -837,7 +837,7 @@ def add_child():
 
 @main.route('/admin/users')
 @login_required
-def user_management():
+def user_management(reset_link_user_id=None, reset_link=None):
     """Admin: View all users and manage them"""
     if not current_user.is_admin:
         flash('Only administrators can access user management.', 'danger')
@@ -856,7 +856,35 @@ def user_management():
                          active_users=active_users,
                          archived_users=archived_users,
                          delete_forms=delete_forms,
+                         reset_link_user_id=reset_link_user_id,
+                         reset_link=reset_link,
                          now=utcnow())
+
+
+@main.route('/admin/users/<int:user_id>/reset-link', methods=['POST'])
+@login_required
+def create_reset_link(user_id):
+    """Admin: create a password reset link to hand to someone directly.
+
+    For when the reset email doesn't reach them. The link is shown once, in
+    the page this returns, and works for 24 hours like an emailed one.
+    """
+    if not current_user.is_admin:
+        flash('Only administrators can create password reset links.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    user = User.query.get_or_404(user_id)
+    
+    if not user.is_active or user.is_child_profile() or user.invite_token:
+        flash(f"A reset link can't be created for {user.name}. Archived accounts and child profiles "
+              "don't log in, and someone who hasn't finished signing up needs a fresh invite instead.", 'warning')
+        return redirect(url_for('main.user_management'))
+    
+    token = user.generate_password_reset_token()
+    db.session.commit()
+    
+    return user_management(reset_link_user_id=user.id,
+                           reset_link=url_for('main.reset_password', token=token, _external=True))
 
 
 @main.route('/admin/users/<int:user_id>/resend-invite', methods=['POST'])

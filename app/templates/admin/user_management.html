@@ -406,6 +406,21 @@
                         </div>
                         {% endif %}
                         
+                        <!-- Password reset link just created by the admin -->
+                        {% if reset_link and reset_link_user_id == user.id %}
+                        <div class="invite-pending" id="resetLink">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control invite-link" readonly
+                                       aria-label="Password reset link for {{ user.name }}"
+                                       value="{{ reset_link }}">
+                                <button type="button" class="btn btn-secondary btn-sm copy-invite">
+                                    <i class="bi bi-clipboard"></i> Copy
+                                </button>
+                            </div>
+                            <div class="user-meta">Send this link to {{ user.name }} to set a new password. It works once, for 24 hours, and won't be shown again after you leave this page.</div>
+                        </div>
+                        {% endif %}
+                        
                         <!-- Managed Children -->
                         {% if user.managed_lists %}
                         {% set active_children = user.managed_lists | selectattr('owner.is_active') | list %}
@@ -445,6 +460,14 @@
                         <a href="{{ url_for('main.view_list', list_id=user.owned_list.id) }}" class="btn btn-secondary btn-sm">
                             <i class="bi bi-eye"></i> View List
                         </a>
+                        {% endif %}
+                        {% if not user.invite_token and not user.is_child_profile() %}
+                        <form method="POST" action="{{ url_for('main.create_reset_link', user_id=user.id) }}#resetLink">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-secondary btn-sm w-100" title="Create a password reset link to send them yourself">
+                                <i class="bi bi-key"></i> Reset Link
+                            </button>
+                        </form>
                         {% endif %}
                         {% if not user.is_admin or (active_users|length > 1 and user.id != current_user.id) %}
                         <a href="{{ url_for('main.archive_user', user_id=user.id) }}" class="btn btn-warning btn-sm">

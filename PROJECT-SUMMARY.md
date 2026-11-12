@@ -9,7 +9,7 @@ A Flask web app for coordinating family gift-giving. Family members create wishl
 - **Backend:** Flask 3.0 (Python 3.12), Flask-SQLAlchemy, Flask-Login, Flask-WTF (CSRF protection app-wide), Flask-Limiter (login throttling)
 - **Database:** PostgreSQL (production via Railway), SQLite (local dev)
 - **Frontend:** Bootstrap 5, Jinja2 templates
-- **Email:** SendGrid HTTP API (not Flask-Mail SMTP)
+- **Email:** Resend HTTP API when `RESEND_API_KEY` is set, otherwise SendGrid HTTP API (Railway blocks outgoing SMTP)
 - **Image Scraping:** requests + BeautifulSoup4 (og:image, twitter:image, itemprop)
 - **Auth:** Passkeys via webauthn==2.7.1 (optional, password fallback always available)
 - **Hosting:** Railway (auto-deploys from GitHub, Procfile runs gunicorn)
@@ -72,6 +72,7 @@ Five models in `app/models.py`:
 - `/admin/invite` - Invite new family member (creates user + sends email)
 - `/admin/users` - User management dashboard (shows pending/expired invites with their links)
 - `/admin/users/<id>/resend-invite` - Issue a fresh invitation link and email (POST)
+- `/admin/users/<id>/reset-link` - Create a password reset link to hand to someone directly, shown once (POST)
 - `/admin/users/<id>/archive` - Archive a user (soft delete, reversible)
 - `/admin/users/<id>/restore` - Restore archived user
 - `/admin/users/<id>/delete` - Permanent delete (requires admin password + email confirmation)
@@ -117,13 +118,13 @@ Five models in `app/models.py`:
 
 ## Email System (app/email.py)
 
-Uses SendGrid HTTP API directly. Send functions return True/False so routes can tell the admin when an email did not go out. Three email types:
+Sends through Resend when `RESEND_API_KEY` is set, otherwise SendGrid. Send functions return True/False so routes can tell the admin when an email did not go out. Three email types:
 
 1. **Invite email** - Sent when admin invites a new member. Contains setup link.
 2. **Password reset email** - Sent on forgot-password request.
 3. **Item deleted notification** - Sent to all claimers when an item is deleted.
 
-API key comes from SENDGRID_API_KEY or MAIL_PASSWORD env var. Sender from MAIL_DEFAULT_SENDER.
+API key comes from RESEND_API_KEY, else SENDGRID_API_KEY or MAIL_PASSWORD. Sender from MAIL_DEFAULT_SENDER, which must be on a domain verified with the provider.
 
 ## Forms (app/forms.py)
 
@@ -176,7 +177,7 @@ gift-exchange/
 
 ## Environment Variables
 
-Required for production: FLASK_ENV, SECRET_KEY (the app will not start without it), DATABASE_URL (auto-set by Railway), SENDGRID_API_KEY or MAIL_PASSWORD (the SendGrid API key), MAIL_DEFAULT_SENDER, WEBAUTHN_RP_ID (bare domain), WEBAUTHN_RP_NAME, WEBAUTHN_ORIGIN (full https URL). Optional: APP_NAME. The other MAIL_* variables are leftovers from Flask-Mail and are no longer read.
+Required for production: FLASK_ENV, SECRET_KEY (the app will not start without it), DATABASE_URL (auto-set by Railway), RESEND_API_KEY (or SENDGRID_API_KEY / MAIL_PASSWORD for SendGrid), MAIL_DEFAULT_SENDER, WEBAUTHN_RP_ID (bare domain), WEBAUTHN_RP_NAME, WEBAUTHN_ORIGIN (full https URL). Optional: APP_NAME. The other MAIL_* variables are leftovers from Flask-Mail and are no longer read.
 
 ## Notes
 
