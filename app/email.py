@@ -1,5 +1,6 @@
 from flask import url_for, current_app
 from markupsafe import escape
+from app.models import INVITE_VALID_DAYS
 import os
 import requests
 
@@ -83,7 +84,7 @@ And the best part? You can't see what's been claimed from YOUR list, so the surp
 Click the link below to set up your account and add your wishlist:
 {invite_url}
 
-This link will expire in 48 hours.
+This link will expire in {INVITE_VALID_DAYS} days.
 
 Happy gift giving!
 """
@@ -112,7 +113,7 @@ Happy gift giving!
         <a href="{invite_url}" style="background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Set Up Your Account</a>
     </p>
     
-    <p><small style="color: #666;">This link will expire in 48 hours.</small></p>
+    <p><small style="color: #666;">This link will expire in {INVITE_VALID_DAYS} days.</small></p>
     
     <p>Happy gift giving!</p>
 </div>

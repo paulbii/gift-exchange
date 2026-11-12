@@ -43,7 +43,7 @@ Five models in `app/models.py`:
 - `/` - Landing page (redirects to dashboard if logged in)
 - `/login` - Login (blocks archived users; 10 attempts per minute per visitor)
 - `/logout` - Logout (POST)
-- `/register/<token>` - Complete registration from invite link (48hr expiry)
+- `/register/<token>` - Complete registration from invite link (30-day expiry, `INVITE_VALID_DAYS` in `app/models.py`)
 - `/forgot-password` - Request password reset (5 per minute per visitor)
 - `/reset-password/<token>` - Reset password (24hr expiry)
 - `/help` - Public help page

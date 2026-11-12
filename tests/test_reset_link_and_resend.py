@@ -176,3 +176,27 @@ def test_no_keys_means_no_send(app, outbox):
     with app.app_context():
         assert email_mod.send_email('Hi', 'a@example.com', 'text') is False
     assert outbox == []
+
+
+# ==================== INVITE LIFETIME ====================
+
+def test_invite_link_lasts_thirty_days(app):
+    from datetime import timedelta
+    from app.models import INVITE_VALID_DAYS
+    assert INVITE_VALID_DAYS == 30
+    user = User(email='x@example.com', name='X')
+    user.generate_invite_token()
+    remaining = user.invite_token_expires - utcnow()
+    assert timedelta(days=29, hours=23) < remaining <= timedelta(days=30)
+
+
+def test_invite_email_and_page_state_the_real_lifetime(app, client, monkeypatch):
+    sent = {}
+    monkeypatch.setattr(email_mod, 'send_email',
+                        lambda subject, recipients, text_body, html_body=None: sent.update(text=text_body, html=html_body) or True)
+    make_user('admin@example.com', 'Admin', admin=True)
+    login(client, 'admin@example.com')
+    page = client.post('/admin/invite', data={'name': 'Sue', 'email': 'sue@example.com'}).data.decode()
+    for body in (sent['text'], sent['html'], page):
+        assert '30 days' in body
+        assert '48 hours' not in body

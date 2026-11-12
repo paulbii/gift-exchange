@@ -5,6 +5,11 @@ from app import db
 import secrets
 
 
+# How long an invitation link stays usable. Generous on purpose: this is a
+# small family site, and people often get to the email days later.
+INVITE_VALID_DAYS = 30
+
+
 def utcnow():
     """Current UTC time as a naive datetime (how every timestamp column stores it)."""
     return datetime.now(timezone.utc).replace(tzinfo=None)
@@ -66,7 +71,7 @@ class User(UserMixin, db.Model):
     def generate_invite_token(self):
         """Generate secure invite token"""
         self.invite_token = secrets.token_urlsafe(32)
-        self.invite_token_expires = utcnow() + timedelta(hours=48)
+        self.invite_token_expires = utcnow() + timedelta(days=INVITE_VALID_DAYS)
         return self.invite_token
     
     def generate_password_reset_token(self):

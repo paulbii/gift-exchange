@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 from app import db, limiter
-from app.models import User, List, Item, Claim, utcnow
+from app.models import User, List, Item, Claim, utcnow, INVITE_VALID_DAYS
 from app.forms import (LoginForm, RegistrationForm, InviteUserForm, PasswordResetRequestForm,
                        PasswordResetForm, ProfileForm, ChangePasswordForm,
                        ItemForm, AddChildForm, PromoteChildForm, ArchiveUserForm, DeleteUserForm)
@@ -757,7 +757,8 @@ def invite_user():
             flash(f"{form.name.data} was added, but the invitation email couldn't be sent. Copy the link below and send it yourself.", 'warning')
         # Don't redirect - stay on page to show the invite link
     
-    return render_template('invite_user.html', form=form, invite_url=invite_url)
+    return render_template('invite_user.html', form=form, invite_url=invite_url,
+                           invite_valid_days=INVITE_VALID_DAYS)
 
 
 # ==================== PROFILE & SETTINGS ====================
